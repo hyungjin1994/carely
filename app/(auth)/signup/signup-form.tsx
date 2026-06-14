@@ -29,6 +29,9 @@ const field: React.CSSProperties = {
 export function SignupForm() {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(signup, {});
   const [role, setRole] = useState<"mom" | "child">("mom");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const mismatch = pw2.length > 0 && pw !== pw2;
 
   return (
     <form action={formAction} style={{ padding: "8px 26px 40px" }}>
@@ -98,7 +101,32 @@ export function SignupForm() {
         </div>
         <div>
           <div style={fieldLabel}>비밀번호</div>
-          <input name="password" type="password" autoComplete="new-password" placeholder="비밀번호" style={field} />
+          <input
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="비밀번호 (6자 이상)"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            style={field}
+          />
+        </div>
+        <div>
+          <div style={fieldLabel}>비밀번호 확인</div>
+          <input
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            placeholder="비밀번호 한 번 더"
+            value={pw2}
+            onChange={(e) => setPw2(e.target.value)}
+            style={{ ...field, borderColor: mismatch ? "#E52222" : "var(--c-line)" }}
+          />
+          {mismatch && (
+            <div style={{ marginTop: 6, paddingLeft: 4, color: "var(--c-bad)", fontSize: "calc(13px*var(--fs))", fontWeight: 700 }}>
+              비밀번호가 일치하지 않아요
+            </div>
+          )}
         </div>
       </div>
 
@@ -110,7 +138,7 @@ export function SignupForm() {
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || mismatch || pw.length === 0}
         style={{
           marginTop: 26,
           width: "100%",
@@ -121,7 +149,7 @@ export function SignupForm() {
           color: "#fff",
           fontSize: "calc(19px*var(--fs))",
           fontWeight: 800,
-          opacity: pending ? 0.6 : 1,
+          opacity: pending || mismatch || pw.length === 0 ? 0.6 : 1,
           boxShadow: "0 8px 20px rgba(0,102,255,.26)",
         }}
       >

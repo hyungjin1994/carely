@@ -35,6 +35,7 @@ export async function signup(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role") ?? "mom",
   });
   if (!parsed.success) {
