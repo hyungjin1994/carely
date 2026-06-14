@@ -1,0 +1,434 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Wanted Design System — colors_and_type.css
+   Tokens lifted from the Wanted Design System (Community) Figma library.
+   Distributed by Wanted Lab under CC BY 4.0.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Fonts ────────────────────────────────────────────────────────────── */
+/* Primary UI face — Pretendard (self-hosted OTF, brand-supplied).
+   Pretendard ≈ Pretendard JP for KR/Latin glyphs; the JP-specific glyphs
+   load from CDN below as a fallback when text contains Japanese kana/kanji.
+*/
+@font-face { font-family: "Pretendard"; font-weight: 100; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Thin.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 200; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-ExtraLight.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 300; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Light.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 400; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Regular.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Medium.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-SemiBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Bold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 800; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-ExtraBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 900; font-style: normal;
+             font-display: swap; src: url("./fonts/Pretendard-Black.otf") format("opentype"); }
+
+/* JP-glyph fallback (CDN). Latin & KR glyphs above take precedence. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.css");
+
+/* Wanted Sans (very limited usage — display moments only). */
+@import url("https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.4/packages/wanted-sans/fonts/webfonts/variable/complete/WantedSansVariable.min.css");
+
+:root {
+  /* =====================================================================
+     COLOR — ATOMIC PALETTE
+     Names: color-atomic-{hue}-{step}.  Step 0 = lightest, 100 = black.
+     ===================================================================== */
+
+  /* Common (pure scale) */
+  --color-atomic-common-100: #FFFFFF;
+  --color-atomic-common-0:   #000000;
+
+  /* Gray (warm/photo neutral) */
+  --color-atomic-gray-98: #F7F7F7;
+  --color-atomic-gray-92: #DCDCDC;
+  --color-atomic-gray-83: #C4C4C4;
+  --color-atomic-gray-71: #B0B0B0;
+  --color-atomic-gray-60: #9B9B9B;
+  --color-atomic-gray-50: #8A8A8A;
+  --color-atomic-gray-40: #737373;
+  --color-atomic-gray-30: #5C5C5C;
+  --color-atomic-gray-25: #474747;
+  --color-atomic-gray-20: #303030;
+  --color-atomic-gray-18: #2A2A2A;
+  --color-atomic-gray-15: #1C1C1C;
+  --color-atomic-gray-12: #171717;
+  --color-atomic-gray-10: #0F0F0F;
+
+  /* Cool Neutral — the system's PRIMARY neutral scale.
+     Most semantic tokens resolve through this scale. */
+  --color-atomic-coolNeutral-99: #F7F7F8;
+  --color-atomic-coolNeutral-98: #F4F4F5;
+  --color-atomic-coolNeutral-97: #EAEBEC;
+  --color-atomic-coolNeutral-96: #E1E2E4;
+  --color-atomic-coolNeutral-95: #DBDCDF;
+  --color-atomic-coolNeutral-83: #C2C4C8;
+  --color-atomic-coolNeutral-70: #AEB0B6;
+  --color-atomic-coolNeutral-65: #989BA2;
+  --color-atomic-coolNeutral-55: #878A93;
+  --color-atomic-coolNeutral-50: #70737C;
+  --color-atomic-coolNeutral-40: #5A5C63;
+  --color-atomic-coolNeutral-30: #46474C;
+  --color-atomic-coolNeutral-25: #37383C;
+  --color-atomic-coolNeutral-23: #333438;
+  --color-atomic-coolNeutral-22: #2E2F33;
+  --color-atomic-coolNeutral-20: #292A2D;
+  --color-atomic-coolNeutral-18: #212225;
+  --color-atomic-coolNeutral-15: #1B1C1E;
+  --color-atomic-coolNeutral-12: #171719;
+  --color-atomic-coolNeutral-10: #141415;
+  --color-atomic-coolNeutral-8:  #0F0F10;
+
+  /* Blue — the Wanted PRIMARY hue (the "원티드 블루"). */
+  --color-atomic-blue-99: #F7FBFF;
+  --color-atomic-blue-95: #EAF2FE;
+  --color-atomic-blue-85: #C9DEFE;
+  --color-atomic-blue-75: #9EC5FF;
+  --color-atomic-blue-65: #69A5FF;
+  --color-atomic-blue-60: #4F95FF;
+  --color-atomic-blue-55: #3385FF;
+  --color-atomic-blue-50: #1A75FF;
+  --color-atomic-blue-45: #0066FF;   /* ← Brand Wanted Blue */
+  --color-atomic-blue-40: #005EEB;
+  --color-atomic-blue-35: #0054D1;
+  --color-atomic-blue-25: #003E9C;
+  --color-atomic-blue-15: #002966;
+  --color-atomic-blue-8:  #001536;
+
+  /* Red — destructive / negative */
+  --color-atomic-red-99: #FFFAFA;
+  --color-atomic-red-95: #FEECEC;
+  --color-atomic-red-85: #FED5D5;
+  --color-atomic-red-75: #FFB5B5;
+  --color-atomic-red-65: #FF8C8C;
+  --color-atomic-red-55: #FF6363;
+  --color-atomic-red-50: #FF4242;
+  --color-atomic-red-40: #E52222;
+  --color-atomic-red-25: #B20C0C;
+  --color-atomic-red-15: #750404;
+  --color-atomic-red-8:  #3B0101;
+
+  /* Green — positive / success */
+  --color-atomic-green-99: #F2FFF6;
+  --color-atomic-green-95: #D9FFE6;
+  --color-atomic-green-85: #ACFCC7;
+  --color-atomic-green-75: #7DF5A5;
+  --color-atomic-green-65: #49E57D;
+  --color-atomic-green-55: #1ED45A;
+  --color-atomic-green-50: #00BF40;
+  --color-atomic-green-40: #009632;
+  --color-atomic-green-30: #006E25;
+  --color-atomic-green-20: #004517;
+  --color-atomic-green-10: #00240C;
+
+  /* Yellow / Amber */
+  --color-atomic-yellow-99: #FFFCF7;
+  --color-atomic-yellow-95: #FEF4E6;
+  --color-atomic-yellow-85: #FEE6C6;
+  --color-atomic-yellow-75: #FFD49C;
+  --color-atomic-yellow-65: #FFC06E;
+  --color-atomic-yellow-55: #FFA938;
+  --color-atomic-yellow-50: #FF9200;
+  --color-atomic-yellow-40: #D47800;
+  --color-atomic-yellow-39: #D17600;
+  --color-atomic-yellow-30: #9C5800;
+  --color-atomic-yellow-20: #663A00;
+  --color-atomic-yellow-10: #361E00;
+
+  /* Orange */
+  --color-atomic-orange-99: #FFFAF7;
+  --color-atomic-orange-95: #FEEEE5;
+  --color-atomic-orange-85: #FEDBC6;
+  --color-atomic-orange-75: #FFC09C;
+  --color-atomic-orange-65: #FF9C63;
+  --color-atomic-orange-55: #FF7B2E;
+  --color-atomic-orange-50: #FF5E00;
+  --color-atomic-orange-48: #F55A00;
+  --color-atomic-orange-39: #CC4B00;
+  --color-atomic-orange-30: #943600;
+  --color-atomic-orange-20: #5C2200;
+  --color-atomic-orange-10: #2E1100;
+
+  /* Lime */
+  --color-atomic-lime-99: #F8FFF2;
+  --color-atomic-lime-95: #E6FFD4;
+  --color-atomic-lime-85: #CCFCA9;
+  --color-atomic-lime-75: #AEF779;
+  --color-atomic-lime-65: #88F03E;
+  --color-atomic-lime-55: #6BE016;
+  --color-atomic-lime-50: #58CF04;
+  --color-atomic-lime-45: #48AD00;
+  --color-atomic-lime-40: #429E00;
+  --color-atomic-lime-37: #347D00;
+  --color-atomic-lime-25: #225200;
+  --color-atomic-lime-15: #112900;
+
+  /* Cyan */
+  --color-atomic-cyan-99: #F7FEFF;
+  --color-atomic-cyan-95: #DEFAFF;
+  --color-atomic-cyan-85: #B5F4FF;
+  --color-atomic-cyan-75: #8AEDFF;
+  --color-atomic-cyan-65: #57DFF7;
+  --color-atomic-cyan-55: #28D0ED;
+  --color-atomic-cyan-50: #00BDDE;
+  --color-atomic-cyan-40: #0098B2;
+  --color-atomic-cyan-30: #006F82;
+  --color-atomic-cyan-20: #004854;
+  --color-atomic-cyan-10: #00252B;
+
+  /* Light Blue (sky) */
+  --color-atomic-lightBlue-99: #F7FDFF;
+  --color-atomic-lightBlue-95: #E5F6FE;
+  --color-atomic-lightBlue-85: #C4ECFE;
+  --color-atomic-lightBlue-75: #A1E1FF;
+  --color-atomic-lightBlue-65: #70D2FF;
+  --color-atomic-lightBlue-55: #3DC2FF;
+  --color-atomic-lightBlue-50: #00AEFF;
+  --color-atomic-lightBlue-40: #008DCF;
+  --color-atomic-lightBlue-30: #006796;
+  --color-atomic-lightBlue-20: #004261;
+  --color-atomic-lightBlue-10: #002130;
+
+  /* Violet */
+  --color-atomic-violet-99: #FBFAFF;
+  --color-atomic-violet-95: #F0ECFE;
+  --color-atomic-violet-85: #DBD3FE;
+  --color-atomic-violet-75: #C0B0FF;
+  --color-atomic-violet-65: #9E86FC;
+  --color-atomic-violet-55: #7D5EF7;
+  --color-atomic-violet-50: #6541F2;
+  --color-atomic-violet-45: #5B37ED;
+  --color-atomic-violet-40: #4F29E5;
+  --color-atomic-violet-30: #3A16C9;
+  --color-atomic-violet-15: #23098F;
+  --color-atomic-violet-8:  #11024D;
+
+  /* Purple */
+  --color-atomic-purple-99: #FEFBFF;
+  --color-atomic-purple-95: #F9EDFF;
+  --color-atomic-purple-85: #F2D6FF;
+  --color-atomic-purple-75: #E9BAFF;
+  --color-atomic-purple-65: #DE96FF;
+  --color-atomic-purple-55: #D478FF;
+  --color-atomic-purple-50: #CB59FF;
+  --color-atomic-purple-40: #AD36E3;
+  --color-atomic-purple-30: #861CB8;
+  --color-atomic-purple-15: #580A7D;
+  --color-atomic-purple-8:  #290247;
+
+  /* Pink / Magenta */
+  --color-atomic-pink-99: #FFFAFE;
+  --color-atomic-pink-95: #FEECFB;
+  --color-atomic-pink-85: #FED3F7;
+  --color-atomic-pink-75: #FFB8F3;
+  --color-atomic-pink-65: #FF94ED;
+  --color-atomic-pink-55: #FA73E3;
+  --color-atomic-pink-50: #F553DA;
+  --color-atomic-pink-46: #E846CD;
+  --color-atomic-pink-40: #D331B8;
+  --color-atomic-pink-30: #A81690;
+  --color-atomic-pink-15: #730560;
+  --color-atomic-pink-8:  #3D0133;
+
+  /* =====================================================================
+     COLOR — SEMANTIC (LIGHT) — the tokens you should reach for first.
+     ===================================================================== */
+
+  /* Primary */
+  --color-semantic-primary-normal:  var(--color-atomic-blue-45);   /* #0066FF */
+  --color-semantic-primary-strong:  var(--color-atomic-blue-40);
+  --color-semantic-primary-heavy:   var(--color-atomic-blue-25);
+
+  /* Labels (foreground text) */
+  --color-semantic-label-normal:    rgba(46, 47, 51, 0.88);  /* coolNeutral-22 @ 88 */
+  --color-semantic-label-strong:    var(--color-atomic-common-0);
+  --color-semantic-label-neutral:   rgba(55, 56, 60, 0.61);  /* coolNeutral-25 @ 61 */
+  --color-semantic-label-alternative: rgba(55, 56, 60, 0.28);
+  --color-semantic-label-assistive: rgba(55, 56, 60, 0.16);
+  --color-semantic-label-disable:   rgba(55, 56, 60, 0.16);
+
+  /* Backgrounds (page / surface) */
+  --color-semantic-background-normal-normal:    var(--color-atomic-coolNeutral-99); /* #F7F7F8 page wash */
+  --color-semantic-background-normal-alternative: var(--color-atomic-common-100);
+  --color-semantic-background-elevated-normal:  var(--color-atomic-common-100);     /* cards on the wash */
+  --color-semantic-background-elevated-alternative: var(--color-atomic-coolNeutral-99);
+
+  /* Lines / dividers */
+  --color-semantic-line-normal-normal:    rgba(112, 115, 124, 0.22);
+  --color-semantic-line-normal-neutral:   rgba(112, 115, 124, 0.16);
+  --color-semantic-line-normal-alternative: rgba(112, 115, 124, 0.08);
+  --color-semantic-line-solid-normal:     var(--color-atomic-coolNeutral-96);
+  --color-semantic-line-solid-neutral:    var(--color-atomic-coolNeutral-97);
+  --color-semantic-line-solid-alternative: var(--color-atomic-coolNeutral-98);
+
+  /* Interaction */
+  --color-semantic-interaction-inactive: var(--color-atomic-coolNeutral-65);
+  --color-semantic-interaction-disable:  var(--color-atomic-coolNeutral-98);
+
+  /* Static */
+  --color-semantic-static-white: var(--color-atomic-common-100);
+  --color-semantic-static-black: var(--color-atomic-common-0);
+
+  /* Status */
+  --color-semantic-status-positive: var(--color-atomic-orange-50);
+  --color-semantic-status-cautionary: var(--color-atomic-yellow-50);
+  --color-semantic-status-negative: var(--color-atomic-red-50);
+
+  /* Inverse (for surfaces ON a dark inverse background) */
+  --color-semantic-inverse-primary: var(--color-atomic-coolNeutral-15);
+  --color-semantic-inverse-elevated: var(--color-atomic-coolNeutral-99);
+
+  /* Accent backgrounds (vibrant tag/chip palette) */
+  --color-semantic-accent-background-redOrange: var(--color-atomic-redOrange, var(--color-atomic-orange-48));
+  --color-semantic-accent-background-orange:    var(--color-atomic-orange-39);
+  --color-semantic-accent-background-lime:      var(--color-atomic-lime-37);
+  --color-semantic-accent-background-green:     var(--color-atomic-green-40);
+  --color-semantic-accent-background-cyan:      var(--color-atomic-cyan-40);
+  --color-semantic-accent-background-lightBlue: var(--color-atomic-lightBlue-40);
+  --color-semantic-accent-background-blue:      var(--color-atomic-blue-45);
+  --color-semantic-accent-background-violet:    var(--color-atomic-violet-45);
+  --color-semantic-accent-background-purple:    var(--color-atomic-purple-40);
+  --color-semantic-accent-background-pink:      var(--color-atomic-pink-46);
+  --color-semantic-accent-background-red:       var(--color-atomic-red-40);
+
+  /* =====================================================================
+     TYPOGRAPHY
+     Primary face stack: Pretendard JP → Pretendard → system sans.
+     Scale below mirrors the Figma "타이포그래피" frame exactly.
+     ===================================================================== */
+  --font-sans: "Pretendard", "Pretendard JP Variable", "Pretendard JP",
+               -apple-system, BlinkMacSystemFont, system-ui,
+               "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-display: "Wanted Sans Variable", "Wanted Sans", var(--font-sans);
+  --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "JetBrains Mono",
+               Consolas, "Liberation Mono", monospace;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+  --weight-extrabold: 800;
+
+  /* Display — used for hero / marketing moments */
+  --type-display1-size: 56px;  --type-display1-lh: 72px;  --type-display1-tracking: -0.0319em;  --type-display1-weight: 700;
+  --type-display2-size: 40px;  --type-display2-lh: 52px;  --type-display2-tracking: -0.0282em;  --type-display2-weight: 700;
+  --type-display3-size: 36px;  --type-display3-lh: 48px;  --type-display3-tracking: -0.027em;   --type-display3-weight: 700;
+
+  /* Title — section headers */
+  --type-title1-size: 32px; --type-title1-lh: 44px; --type-title1-tracking: -0.0253em; --type-title1-weight: 700;
+  --type-title2-size: 28px; --type-title2-lh: 38px; --type-title2-tracking: -0.0236em; --type-title2-weight: 700;
+  --type-title3-size: 24px; --type-title3-lh: 32px; --type-title3-tracking: -0.023em;  --type-title3-weight: 700;
+
+  /* Heading — card titles, dialog titles */
+  --type-heading1-size: 22px; --type-heading1-lh: 30px; --type-heading1-tracking: -0.0194em; --type-heading1-weight: 700;
+  --type-heading2-size: 20px; --type-heading2-lh: 28px; --type-heading2-tracking: -0.012em;  --type-heading2-weight: 700;
+
+  /* Headline — small headers within rows */
+  --type-headline1-size: 18px; --type-headline1-lh: 26px; --type-headline1-tracking: -0.002em; --type-headline1-weight: 700;
+  --type-headline2-size: 17px; --type-headline2-lh: 24px; --type-headline2-tracking: 0em;       --type-headline2-weight: 700;
+
+  /* Body — paragraph text */
+  --type-body1-size: 16px;       --type-body1-lh: 24px; --type-body1-tracking: 0.0057em; --type-body1-weight: 500;
+  --type-body1-reading-lh: 26px;
+  --type-body2-size: 15px;       --type-body2-lh: 22px; --type-body2-tracking: 0.0096em; --type-body2-weight: 500;
+  --type-body2-reading-lh: 24px;
+
+  /* Label — UI controls, captions on chips */
+  --type-label1-size: 14px;      --type-label1-lh: 20px; --type-label1-tracking: 0.0145em; --type-label1-weight: 500;
+  --type-label1-reading-lh: 22px;
+  --type-label2-size: 13px;      --type-label2-lh: 18px; --type-label2-tracking: 0.0194em; --type-label2-weight: 500;
+
+  /* Caption — micro */
+  --type-caption1-size: 12px;    --type-caption1-lh: 16px; --type-caption1-tracking: 0.0252em; --type-caption1-weight: 500;
+  --type-caption2-size: 11px;    --type-caption2-lh: 14px; --type-caption2-tracking: 0.0311em; --type-caption2-weight: 500;
+
+  /* =====================================================================
+     RADIUS — Wanted likes soft, never pill, except on chips/CTAs.
+     ===================================================================== */
+  --radius-none: 0;
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-3xl:  24px;
+  --radius-4xl:  32px;
+  --radius-full: 9999px;
+
+  /* =====================================================================
+     SPACING — the system is built on a 4px grid.
+     ===================================================================== */
+  --space-0:  0;
+  --space-1:  2px;
+  --space-2:  4px;
+  --space-3:  6px;
+  --space-4:  8px;
+  --space-5:  10px;
+  --space-6:  12px;
+  --space-7:  14px;
+  --space-8:  16px;
+  --space-9:  20px;
+  --space-10: 24px;
+  --space-11: 32px;
+  --space-12: 40px;
+  --space-13: 48px;
+  --space-14: 64px;
+  --space-15: 80px;
+  --space-16: 96px;
+  --space-17: 128px;
+
+  /* =====================================================================
+     ELEVATION — extracted from the most common shadow tokens.
+     Wanted shadows are TIGHT and BARELY VISIBLE — never colored, never soft.
+     ===================================================================== */
+  --shadow-emphasize:  0 0 8px rgba(0, 0, 0, 0.12);
+  --shadow-normal:     0 1px 4px rgba(0, 0, 0, 0.08),
+                       0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-strong:     0 6px 24px rgba(23, 23, 23, 0.10),
+                       0 2px 6px rgba(23, 23, 23, 0.07);
+  --shadow-heavy:      0 16px 32px rgba(23, 23, 23, 0.06),
+                       0 4px 16px rgba(23, 23, 23, 0.07);
+  --shadow-inset:      inset 0 0 0 1px rgba(112, 115, 124, 0.16);
+
+  /* =====================================================================
+     MOTION — used in Figma examples (subtle, fast).
+     ===================================================================== */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --ease-out:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===========================================================================
+   SEMANTIC ELEMENT STYLES — use these classes for "just type this paragraph".
+   =========================================================================== */
+.ds-display-1 { font: var(--weight-bold) var(--type-display1-size)/var(--type-display1-lh) var(--font-sans); letter-spacing: var(--type-display1-tracking); }
+.ds-display-2 { font: var(--weight-bold) var(--type-display2-size)/var(--type-display2-lh) var(--font-sans); letter-spacing: var(--type-display2-tracking); }
+.ds-display-3 { font: var(--weight-bold) var(--type-display3-size)/var(--type-display3-lh) var(--font-sans); letter-spacing: var(--type-display3-tracking); }
+.ds-title-1   { font: var(--weight-bold) var(--type-title1-size)/var(--type-title1-lh)   var(--font-sans); letter-spacing: var(--type-title1-tracking); }
+.ds-title-2   { font: var(--weight-bold) var(--type-title2-size)/var(--type-title2-lh)   var(--font-sans); letter-spacing: var(--type-title2-tracking); }
+.ds-title-3   { font: var(--weight-bold) var(--type-title3-size)/var(--type-title3-lh)   var(--font-sans); letter-spacing: var(--type-title3-tracking); }
+.ds-heading-1 { font: var(--weight-bold) var(--type-heading1-size)/var(--type-heading1-lh) var(--font-sans); letter-spacing: var(--type-heading1-tracking); }
+.ds-heading-2 { font: var(--weight-bold) var(--type-heading2-size)/var(--type-heading2-lh) var(--font-sans); letter-spacing: var(--type-heading2-tracking); }
+.ds-headline-1 { font: var(--weight-bold) var(--type-headline1-size)/var(--type-headline1-lh) var(--font-sans); letter-spacing: var(--type-headline1-tracking); }
+.ds-headline-2 { font: var(--weight-bold) var(--type-headline2-size)/var(--type-headline2-lh) var(--font-sans); letter-spacing: var(--type-headline2-tracking); }
+.ds-body-1    { font: var(--weight-medium) var(--type-body1-size)/var(--type-body1-lh) var(--font-sans); letter-spacing: var(--type-body1-tracking); }
+.ds-body-1-r  { font: var(--weight-medium) var(--type-body1-size)/var(--type-body1-reading-lh) var(--font-sans); letter-spacing: var(--type-body1-tracking); }
+.ds-body-2    { font: var(--weight-medium) var(--type-body2-size)/var(--type-body2-lh) var(--font-sans); letter-spacing: var(--type-body2-tracking); }
+.ds-body-2-r  { font: var(--weight-medium) var(--type-body2-size)/var(--type-body2-reading-lh) var(--font-sans); letter-spacing: var(--type-body2-tracking); }
+.ds-label-1   { font: var(--weight-medium) var(--type-label1-size)/var(--type-label1-lh) var(--font-sans); letter-spacing: var(--type-label1-tracking); }
+.ds-label-1-r { font: var(--weight-medium) var(--type-label1-size)/var(--type-label1-reading-lh) var(--font-sans); letter-spacing: var(--type-label1-tracking); }
+.ds-label-2   { font: var(--weight-medium) var(--type-label2-size)/var(--type-label2-lh) var(--font-sans); letter-spacing: var(--type-label2-tracking); }
+.ds-caption-1 { font: var(--weight-medium) var(--type-caption1-size)/var(--type-caption1-lh) var(--font-sans); letter-spacing: var(--type-caption1-tracking); }
+.ds-caption-2 { font: var(--weight-medium) var(--type-caption2-size)/var(--type-caption2-lh) var(--font-sans); letter-spacing: var(--type-caption2-tracking); }
+
+/* Sensible base */
+html { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { color: var(--color-semantic-label-strong); background: var(--color-semantic-background-normal-normal); }

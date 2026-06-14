@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root{
+    --fs: 1;
+    --c-bg: #EDF0F4; --c-card: #FFFFFF; --c-text: #16181D;
+    --c-sub: #5A5C63; --c-faint:#8A8D95; --c-line: rgba(112,115,124,0.16);
+    --c-primary: #0066FF; --c-screen:#F4F6F9;
+  }
+  body{ margin:0; font-family:"Pretendard",-apple-system,system-ui,sans-serif; }
+  .cy-scroll::-webkit-scrollbar{ width:0; height:0; }
+  @keyframes cyflip { from{ transform:rotateY(0);} to{ transform:rotateY(180deg);} }
+  @keyframes cypop { 0%{transform:scale(.6);opacity:0;} 60%{transform:scale(1.06);} 100%{transform:scale(1);opacity:1;} }
+  @keyframes cyglow { 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.7);} }
+  @keyframes cyrise { from{ transform:translateY(10px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  button{ font-family:inherit; cursor:pointer; }
+</style>
+</helmet>
+
+<div style="{{ pageStyle }}">
+
+  <div style="text-align:center; max-width:880px;">
+    <div style="display:inline-flex; align-items:center; gap:10px; margin-bottom:10px;">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0066FF,#5B37ED);display:flex;align-items:center;justify-content:center;">
+        <span style="display:block;width:20px;height:20px;background:#fff;-webkit-mask:url(icons/heart-fill.svg) center/contain no-repeat;mask:url(icons/heart-fill.svg) center/contain no-repeat;"></span>
+      </div>
+      <span style="font-size:26px;font-weight:800;letter-spacing:-0.02em;color:#16181D;">Carely</span>
+    </div>
+    <div style="font-size:15px;color:#5A5C63;line-height:1.6;">엄마와 자녀가 함께 건강을 챙기는 앱 · 작동하는 시안<br>
+    <span style="color:#8A8D95;">휴대폰 화면을 직접 만져보세요. 왼쪽은 어머니 앱, 오른쪽은 자녀 화면이에요.</span></div>
+  </div>
+
+  <div style="display:flex; gap:48px; align-items:flex-start; flex-wrap:wrap; justify-content:center;">
+
+    <!-- ===================== MOM PHONE ===================== -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+      <div style="font-size:13px;font-weight:700;color:#5A5C63;letter-spacing:0.04em;background:#fff;border:1px solid var(--c-line);padding:7px 16px;border-radius:999px;">어머니 화면 · 형진엄마</div>
+      <div style="{{ bezelStyle }}">
+        <div style="{{ screenStyle }}">
+          <!-- status bar -->
+          <div style="height:52px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;position:relative;z-index:5;">
+            <span style="font-size:15px;font-weight:700;color:var(--c-text);">9:41</span>
+            <div style="position:absolute;left:50%;top:9px;transform:translateX(-50%);width:108px;height:30px;background:#000;border-radius:999px;"></div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:12px;font-weight:700;color:var(--c-text);">100%</span>
+              <div style="width:24px;height:12px;border:1.5px solid var(--c-text);border-radius:3px;padding:1.5px;opacity:.9;"><div style="width:100%;height:100%;background:var(--c-text);border-radius:1px;"></div></div>
+            </div>
+          </div>
+
+          <!-- scroll content -->
+          <div class="cy-scroll" style="flex:1;overflow-y:auto;overflow-x:hidden;position:relative;">
+
+            <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:24px 26px 40px;display:flex;flex-direction:column;min-height:100%;">
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+                  <div style="width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,#0066FF,#5B37ED);display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 10px 24px rgba(91,55,237,.28);">
+                    <span style="display:block;width:40px;height:40px;background:#fff;-webkit-mask:url(icons/heart-fill.svg) center/contain no-repeat;mask:url(icons/heart-fill.svg) center/contain no-repeat;"></span>
+                  </div>
+                  <div style="font-size:calc(34px*var(--fs));font-weight:800;letter-spacing:-0.02em;color:var(--c-text);line-height:1.15;">반가워요!<br>Carely 예요</div>
+                  <div style="font-size:calc(17px*var(--fs));color:var(--c-sub);margin-top:12px;line-height:1.5;">매일 게임하고 가족과 소식도 나눠요</div>
+
+                  <div style="margin-top:30px;display:flex;flex-direction:column;gap:14px;">
+                    <label style="display:flex;align-items:center;gap:12px;background:var(--c-card);border:2px solid var(--c-line);border-radius:16px;padding:0 16px;height:62px;">
+                      <span style="display:block;width:24px;height:24px;background:var(--c-faint);-webkit-mask:url(icons/mail.svg) center/contain no-repeat;mask:url(icons/mail.svg) center/contain no-repeat;"></span>
+                      <input value="{{ email }}" onChange="{{ onEmail }}" placeholder="이메일" style="border:none;outline:none;background:transparent;flex:1;font-size:calc(18px*var(--fs));color:var(--c-text);font-family:inherit;"/>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:12px;background:var(--c-card);border:2px solid var(--c-line);border-radius:16px;padding:0 16px;height:62px;">
+                      <span style="display:block;width:24px;height:24px;background:var(--c-faint);-webkit-mask:url(icons/lock.svg) center/contain no-repeat;mask:url(icons/lock.svg) center/contain no-repeat;"></span>
+                      <input value="{{ pw }}" onChange="{{ onPw }}" type="{{ pwType }}" placeholder="비밀번호" style="border:none;outline:none;background:transparent;flex:1;font-size:calc(18px*var(--fs));color:var(--c-text);font-family:inherit;"/>
+                      <button onClick="{{ toggleShowPw }}" style="border:none;background:transparent;padding:8px;display:flex;"><span style="display:block;width:24px;height:24px;background:var(--c-faint);-webkit-mask:url({{ pwEyeIcon }}) center/contain no-repeat;mask:url({{ pwEyeIcon }}) center/contain no-repeat;"></span></button>
+                    </label>
+                  </div>
+
+                  <button onClick="{{ doLogin }}" style="margin-top:22px;border:none;border-radius:16px;height:64px;background:var(--c-primary);color:#fff;font-size:calc(19px*var(--fs));font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 20px rgba(0,102,255,.26);">로그인</button>
+
+                  <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:18px;color:var(--c-faint);font-size:calc(14px*var(--fs));">
+                    <span style="display:block;width:18px;height:18px;background:var(--c-primary);-webkit-mask:url(icons/circle-check-fill.svg) center/contain no-repeat;mask:url(icons/circle-check-fill.svg) center/contain no-repeat;"></span>
+                    한 번 로그인하면 다음엔 바로 들어와요
+                  </div>
+                </div>
+                <div style="text-align:center;padding-top:20px;font-size:calc(16px*var(--fs));color:var(--c-sub);">
+                  처음이신가요? <button onClick="{{ goSignup }}" style="border:none;background:transparent;color:var(--c-primary);font-weight:800;font-size:calc(16px*var(--fs));padding:6px;">회원가입</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:8px 26px 40px;">
+                <button onClick="{{ goLogin }}" style="border:none;background:transparent;padding:10px 0;display:flex;align-items:center;gap:6px;color:var(--c-sub);font-size:calc(16px*var(--fs));font-weight:700;"><span style="display:block;width:22px;height:22px;background:var(--c-sub);-webkit-mask:url(icons/chevron-left.svg) center/contain no-repeat;mask:url(icons/chevron-left.svg) center/contain no-repeat;"></span>로그인으로</button>
+                <div style="font-size:calc(30px*var(--fs));font-weight:800;letter-spacing:-0.02em;color:var(--c-text);margin-top:10px;">회원가입</div>
+                <div style="font-size:calc(16px*var(--fs));color:var(--c-sub);margin-top:8px;line-height:1.5;">이름(호칭)은 인사말에 사용해요</div>
+                <div style="margin-top:26px;display:flex;flex-direction:column;gap:16px;">
+                  <div>
+                    <div style="font-size:calc(15px*var(--fs));font-weight:700;color:var(--c-sub);margin-bottom:8px;padding-left:4px;">이름 (호칭)</div>
+                    <input value="{{ suName }}" onChange="{{ onSuName }}" placeholder="예: 형진엄마" style="width:100%;border:2px solid var(--c-line);border-radius:16px;padding:0 18px;height:62px;font-size:calc(18px*var(--fs));color:var(--c-text);outline:none;font-family:inherit;background:var(--c-card);"/>
+                  </div>
+                  <div>
+                    <div style="font-size:calc(15px*var(--fs));font-weight:700;color:var(--c-sub);margin-bottom:8px;padding-left:4px;">이메일</div>
+                    <input value="{{ suEmail }}" onChange="{{ onSuEmail }}" placeholder="이메일 주소" style="width:100%;border:2px solid var(--c-line);border-radius:16px;padding:0 18px;height:62px;font-size:calc(18px*var(--fs));color:var(--c-text);outline:none;font-family:inherit;background:var(--c-card);"/>
+                  </div>
+                  <div>
+                    <div style="font-size:calc(15px*var(--fs));font-weight:700;color:var(--c-sub);margin-bottom:8px;padding-left:4px;">비밀번호</div>
+                    <input value="{{ suPw }}" onChange="{{ onSuPw }}" type="password" placeholder="비밀번호" style="width:100%;border:2px solid var(--c-line);border-radius:16px;padding:0 18px;height:62px;font-size:calc(18px*var(--fs));color:var(--c-text);outline:none;font-family:inherit;background:var(--c-card);"/>
+                  </div>
+                </div>
+                <button onClick="{{ doSignup }}" style="margin-top:26px;width:100%;border:none;border-radius:16px;height:64px;background:var(--c-primary);color:#fff;font-size:calc(19px*var(--fs));font-weight:800;box-shadow:0 8px 20px rgba(0,102,255,.26);">가입하고 시작하기</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showHome }}" hint-placeholder-val="{{ false }}">{{ homeEl }}</sc-if>
+
+            <sc-if value="{{ showGames }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:6px 22px 28px;">
+                <div style="font-size:calc(28px*var(--fs));font-weight:800;letter-spacing:-0.02em;color:var(--c-text);margin:8px 0 4px;">두뇌 게임</div>
+                <div style="font-size:calc(16px*var(--fs));color:var(--c-sub);margin-bottom:20px;">게임을 고르고 난이도를 정해요</div>
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                  <sc-for list="{{ games }}" as="g" hint-placeholder-count="6">
+                    <button onClick="{{ g.open }}" style="display:flex;align-items:center;gap:16px;background:var(--c-card);border:1px solid var(--c-line);border-radius:22px;padding:16px;text-align:left;box-shadow:0 1px 4px rgba(0,0,0,.05);">
+                      <div style="width:62px;height:62px;border-radius:18px;background:{{ g.color }};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 14px {{ g.shadow }};">
+                        <span style="display:block;width:32px;height:32px;background:#fff;-webkit-mask:url({{ g.iconUrl }}) center/contain no-repeat;mask:url({{ g.iconUrl }}) center/contain no-repeat;"></span>
+                      </div>
+                      <div style="flex:1;">
+                        <div style="font-size:calc(19px*var(--fs));font-weight:800;color:var(--c-text);">{{ g.name }}</div>
+                        <div style="font-size:calc(14px*var(--fs));color:var(--c-sub);margin-top:3px;">{{ g.desc }}</div>
+                      </div>
+                      <span style="display:block;width:24px;height:24px;background:var(--c-faint);-webkit-mask:url(icons/chevron-right.svg) center/contain no-repeat;mask:url(icons/chevron-right.svg) center/contain no-repeat;"></span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showGame }}" hint-placeholder-val="{{ false }}">{{ gameEl }}</sc-if>
+            <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">{{ resultEl }}</sc-if>
+
+            <sc-if value="{{ showPoints }}" hint-placeholder-val="{{ false }}">{{ pointsEl }}</sc-if>
+            <sc-if value="{{ showExchange }}" hint-placeholder-val="{{ false }}">{{ exchangeEl }}</sc-if>
+            <sc-if value="{{ showCalendar }}" hint-placeholder-val="{{ false }}">{{ calendarEl }}</sc-if>
+            <sc-if value="{{ showMeds }}" hint-placeholder-val="{{ false }}">{{ medsEl }}</sc-if>
+            <sc-if value="{{ showFamily }}" hint-placeholder-val="{{ false }}">{{ familyEl }}</sc-if>
+            <sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">{{ settingsEl }}</sc-if>
+
+          </div>
+
+          <!-- difficulty sheet -->
+          <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closePicker }}" style="position:absolute;inset:0;background:rgba(10,12,20,.42);z-index:30;display:flex;align-items:flex-end;">
+              <div onClick="{{ stop }}" style="width:100%;background:var(--c-card);border-radius:28px 28px 0 0;padding:22px 22px calc(28px);animation:cyrise .26s ease;">
+                <div style="width:44px;height:5px;border-radius:3px;background:var(--c-line);margin:0 auto 16px;"></div>
+                <div style="font-size:calc(22px*var(--fs));font-weight:800;color:var(--c-text);">{{ pickerName }}</div>
+                <div style="font-size:calc(15px*var(--fs));color:var(--c-sub);margin:6px 0 18px;">난이도를 골라요. 어려울수록 포인트가 많아요</div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ diffOptions }}" as="d" hint-placeholder-count="3">
+                    <button onClick="{{ d.start }}" style="display:flex;align-items:center;gap:14px;border:2px solid {{ d.border }};background:{{ d.bg }};border-radius:18px;padding:16px 18px;text-align:left;">
+                      <div style="width:48px;height:48px;border-radius:14px;background:{{ d.color }};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:800;font-size:calc(20px*var(--fs));">{{ d.short }}</div>
+                      <div style="flex:1;">
+                        <div style="font-size:calc(18px*var(--fs));font-weight:800;color:var(--c-text);">{{ d.label }}</div>
+                        <div style="font-size:calc(13px*var(--fs));color:var(--c-sub);margin-top:2px;">{{ d.detail }}</div>
+                      </div>
+                      <div style="font-weight:800;font-size:calc(16px*var(--fs));color:{{ d.color }};">{{ d.mult }}</div>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- toast -->
+          <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:50%;bottom:108px;transform:translateX(-50%);z-index:40;background:#16181D;color:#fff;padding:12px 20px;border-radius:14px;font-size:calc(15px*var(--fs));font-weight:700;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:cyrise .2s ease;display:flex;align-items:center;gap:8px;">
+              <span style="display:block;width:18px;height:18px;background:#69E59A;-webkit-mask:url(icons/circle-check-fill.svg) center/contain no-repeat;mask:url(icons/circle-check-fill.svg) center/contain no-repeat;"></span>
+              {{ toast }}
+            </div>
+          </sc-if>
+
+          <!-- tab bar -->
+          <sc-if value="{{ showTab }}" hint-placeholder-val="{{ false }}">
+            <div style="flex-shrink:0;border-top:1px solid var(--c-line);background:var(--c-card);padding:8px 6px 26px;display:flex;">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+                <button onClick="{{ t.go }}" style="flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;">
+                  <span style="display:block;width:27px;height:27px;background:{{ t.color }};-webkit-mask:url({{ t.iconUrl }}) center/contain no-repeat;mask:url({{ t.iconUrl }}) center/contain no-repeat;"></span>
+                  <span style="font-size:11px;font-weight:700;color:{{ t.color }};">{{ t.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CHILD PHONE ===================== -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+      <div style="font-size:13px;font-weight:700;color:#5A5C63;letter-spacing:0.04em;background:#fff;border:1px solid var(--c-line);padding:7px 16px;border-radius:999px;">자녀 화면 · 아들 형진</div>
+      <div style="{{ bezelStyle }}">
+        <div style="{{ childScreenStyle }}">{{ childEl }}</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:980}}">
+const h = React.createElement;
+
+const DIFF = {
+  easy:   { label:'쉬움',   short:'하', mult:1, detail:'문제 적게 · 천천히', color:'#00A63E', n:{quiz:4, math:5, stroop:6, mem:3, seq:3, word:4} },
+  normal: { label:'보통',   short:'중', mult:2, detail:'적당한 양 · 포인트 2배', color:'#FF9200', n:{quiz:6, math:8, stroop:9, mem:6, seq:4, word:6} },
+  hard:   { label:'어려움', short:'상', mult:3, detail:'문제 많이 · 포인트 3배', color:'#E52222', n:{quiz:8, math:10, stroop:12, mem:8, seq:5, word:8} },
+};
+const GAMES = [
+  { id:'quiz',   name:'상식 퀴즈',     desc:'세계 수도·한국 상식·속담',  color:'#5B37ED', icon:'sparkle-fill' },
+  { id:'mem',    name:'카드 짝맞추기', desc:'같은 그림 찾기',            color:'#E846CD', icon:'heart-fill' },
+  { id:'word',   name:'단어 맞추기',   desc:'어울리는 짝 고르기',        color:'#0098B2', icon:'pencil' },
+  { id:'seq',    name:'순서 기억',     desc:'켜지는 순서대로 누르기',    color:'#FF5E00', icon:'fire-fill' },
+  { id:'math',   name:'숫자 계산',     desc:'간단한 더하기·빼기',        color:'#0066FF', icon:'coins-fill' },
+  { id:'stroop', name:'색깔 맞추기',   desc:'글자의 색깔을 맞혀요',      color:'#42A800', icon:'star-fill' },
+];
+const QUIZ = [
+  {q:'프랑스의 수도는 어디일까요?', o:['파리','런던','로마','베를린'], a:0},
+  {q:'일본의 수도는 어디일까요?', o:['오사카','도쿄','교토','삿포로'], a:1},
+  {q:'미국의 수도는 어디일까요?', o:['뉴욕','워싱턴 D.C.','로스앤젤레스','시카고'], a:1},
+  {q:'한글을 만드신 임금님은?', o:['세종대왕','태조','정조','광개토대왕'], a:0},
+  {q:'추석에 먹는 대표 음식은?', o:['떡국','부럼','송편','팥죽'], a:2},
+  {q:'무지개는 모두 몇 가지 색일까요?', o:['다섯','여섯','일곱','여덟'], a:2},
+  {q:'"가는 말이 고와야 ◯◯ 말이 곱다"', o:['오는','하는','나쁜','지는'], a:0},
+  {q:'"티끌 모아 ◯◯"', o:['강물','태산','보름','큰일'], a:1},
+  {q:'벌이 부지런히 모으는 것은?', o:['꿀','솜','쌀','물'], a:0},
+  {q:'봄에 가장 먼저 피는 노란 꽃은?', o:['장미','국화','개나리','코스모스'], a:2},
+  {q:'우리나라 국화(나라꽃)는?', o:['진달래','무궁화','벚꽃','목련'], a:1},
+  {q:'김치의 주재료는 무엇일까요?', o:['무','오이','배추','당근'], a:2},
+];
+const WORDQ = [
+  {q:'바늘', ans:'실',   d:['못','풀','종이']},
+  {q:'숟가락', ans:'젓가락', d:['접시','컵','냄비']},
+  {q:'우산', ans:'비',   d:['눈사람','모자','바람']},
+  {q:'연필', ans:'지우개', d:['가위','자석','풍선']},
+  {q:'구두', ans:'양말', d:['장갑','목도리','안경']},
+  {q:'책상', ans:'의자', d:['이불','수건','우산']},
+  {q:'장갑', ans:'손',   d:['발','코','귀']},
+  {q:'열쇠', ans:'자물쇠', d:['바퀴','단추','거울']},
+];
+const SCOLORS = [
+  {name:'빨강', hex:'#E52222'}, {name:'파랑', hex:'#0066FF'}, {name:'초록', hex:'#00A63E'},
+  {name:'노랑', hex:'#E08800'}, {name:'보라', hex:'#5B37ED'},
+];
+const MEMFACES = [
+  {icon:'heart-fill', color:'#E846CD'}, {icon:'star-fill', color:'#FF9200'},
+  {icon:'sun', color:'#E08800'}, {icon:'moon', color:'#5B37ED'},
+  {icon:'crown', color:'#0098B2'}, {icon:'sparkle-fill', color:'#42A800'},
+  {icon:'fire-fill', color:'#FF5E00'}, {icon:'trophy', color:'#0066FF'},
+];
+const SEQPADS = [
+  {color:'#5B37ED', lit:'#B79BFF'}, {color:'#FF5E00', lit:'#FFB78F'},
+  {color:'#0098B2', lit:'#7DE3F5'}, {color:'#42A800', lit:'#A6F26B'},
+];
+const shuffle = (a) => { const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; };
+const ICON = (n) => `icons/${n}.svg`;
+
+class Component extends DCLogic {
+  state = {
+    screen:'login', auth:false,
+    name:'형진엄마', email:'', pw:'', showPw:false,
+    suName:'', suEmail:'', suPw:'',
+    homeVariant:'A',
+    fontScale:1, highContrast:false, notifyOn:true,
+    points:1240, todayPoints:240, dailyCap:1000,
+    scores:[ {game:'카드 짝맞추기', score:120, when:'오늘'}, {game:'상식 퀴즈', score:80, when:'어제'} ],
+    activeTab:'home',
+    picker:null, g:null, lastResult:null, toast:'',
+    selDate: 11,
+    events: {
+      9:[{type:'운동', title:'동네 한 바퀴 걷기', time:'07:30', done:true}],
+      11:[{type:'약', title:'혈압약 챙기기', time:'08:00', done:true},{type:'병원', title:'내과 정기검진', time:'14:00', done:false}],
+      13:[{type:'가족', title:'형진이 집들이', time:'18:00', done:false}],
+      18:[{type:'약', title:'영양제', time:'09:00', done:false}],
+      24:[{type:'병원', title:'치과 스케일링', time:'10:30', done:false}],
+    },
+    meds:[
+      {name:'혈압약', dose:'1정', times:['아침']},
+      {name:'당뇨약', dose:'1정', times:['아침','저녁']},
+      {name:'종합영양제', dose:'2정', times:['아침']},
+    ],
+    photos:[
+      {grad:'linear-gradient(135deg,#FF9C63,#FF5E00)', cap:'텃밭 상추가 이렇게 컸어요', when:'오늘'},
+      {grad:'linear-gradient(135deg,#69A5FF,#5B37ED)', cap:'친구들이랑 나들이', when:'2일 전'},
+      {grad:'linear-gradient(135deg,#7DF5A5,#0098B2)', cap:'손주가 그려준 그림', when:'5일 전'},
+    ],
+    feed:[
+      {who:'아들 형진', text:'엄마 점심 꼭 챙겨 드세요. 주말에 갈게요!', when:'30분 전', mine:false},
+      {who:'나', text:'그래~ 텃밭 사진 보냈다', when:'1시간 전', mine:true},
+    ],
+    exchanges:[ {amount:10000, status:'대기', when:'어제'}, {amount:5000, status:'완료', when:'지난주'} ],
+    childTab:'feed', childMsg:'', connectCode:'7K2Q', childConnected:true,
+    calAdd:false, newEvt:{type:'약', title:'', time:'09:00'},
+    medAdd:false, newMed:{name:'', dose:'1정', times:[]},
+    nameEdit:false, editName:'',
+    medTaken:{},
+  };
+
+  componentDidMount(){
+    try { const s = JSON.parse(localStorage.getItem('carely_v1')||'null'); if(s) this.setState(s); } catch(e){}
+  }
+  save(patch){
+    this.setState(patch, ()=>{
+      const k=['auth','name','homeVariant','fontScale','highContrast','notifyOn','points','todayPoints','scores'];
+      const out={}; k.forEach(x=>out[x]=this.state[x]);
+      try{ localStorage.setItem('carely_v1', JSON.stringify(out)); }catch(e){}
+    });
+  }
+  flash(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),1800); }
+
+  go = (screen, tab) => { this._scrollTop(); this.setState(s=>({screen, activeTab: tab||s.activeTab})); };
+  _scrollTop(){ requestAnimationFrame(()=>{ const e=document.querySelector('.cy-scroll'); if(e) e.scrollTop=0; }); }
+
+  addPoints(raw){
+    this.setState(s=>{
+      const room = Math.max(0, s.dailyCap - s.todayPoints);
+      const got = Math.min(raw, room);
+      return { points: s.points+got, todayPoints: s.todayPoints+got, _lastGot:got };
+    }, ()=>this.save({}));
+    const room = Math.max(0, this.state.dailyCap - this.state.todayPoints);
+    return Math.min(raw, room+raw);
+  }
+
+  greeting(){
+    const hr = new Date().getHours();
+    if(hr<11) return {t:'좋은 아침이에요', icon:'sun', g:'linear-gradient(135deg,#FFB347,#FF7B2E)'};
+    if(hr<17) return {t:'점심은 드셨어요?', icon:'sun', g:'linear-gradient(135deg,#4F95FF,#0066FF)'};
+    if(hr<21) return {t:'좋은 저녁이에요', icon:'moon', g:'linear-gradient(135deg,#7D5EF7,#5B37ED)'};
+    return {t:'편안한 밤 되세요', icon:'moon', g:'linear-gradient(135deg,#37383C,#0F2A66)'};
+  }
+
+  // ---------- games ----------
+  openPicker = (id) => this.setState({picker:id});
+  closePicker = () => this.setState({picker:null});
+
+  startGame(id, diff){
+    const cfg = DIFF[diff]; const n = cfg.n[id];
+    const g = { id, diff, mult:cfg.mult, n, round:0, correct:0 };
+    if(id==='quiz') g.list = shuffle(QUIZ).slice(0,n);
+    if(id==='word') g.list = shuffle(WORDQ).slice(0,n).map(this._wordRound);
+    if(id==='math') g.cur = this._mathRound(diff);
+    if(id==='stroop') g.cur = this._stroopRound();
+    if(id==='mem'){ g.deck = this._memDeck(n); g.first=null; g.lock=false; g.matched=0; g.moves=0; }
+    if(id==='seq'){ g.len = (diff==='easy'?3:diff==='normal'?4:5); g.pattern=this._seqPattern(g.len); g.input=[]; g.phase='show'; g.active=-1; }
+    g.sel=null; g.answered=false;
+    this.setState({picker:null, g, screen:'game'});
+    if(id==='seq') this._playSeq(g.pattern);
+  }
+
+  _wordRound = (w) => { const opts = shuffle([w.ans, ...w.d]); return {q:w.q, opts, a:opts.indexOf(w.ans)}; };
+  _mathRound(diff){
+    const max = diff==='easy'?9 : diff==='normal'?20 : 50;
+    let a=Math.floor(Math.random()*max)+1, b=Math.floor(Math.random()*max)+1;
+    const plus = Math.random()<0.5;
+    if(!plus && a<b){ [a,b]=[b,a]; }
+    const ans = plus? a+b : a-b;
+    const opts = shuffle([ans, ans+Math.floor(Math.random()*3)+1, Math.max(0,ans-(Math.floor(Math.random()*3)+1)), ans+ (Math.random()<.5?2:-2)].filter((v,i,arr)=>arr.indexOf(v)===i).slice(0,4));
+    while(opts.length<4){ const c=ans+Math.floor(Math.random()*7)-3; if(!opts.includes(c)&&c>=0) opts.push(c); }
+    return {a,b,plus,ans, opts:shuffle(opts), correct:opts.indexOf(ans)};
+  }
+  _stroopRound(){
+    const word = SCOLORS[Math.floor(Math.random()*SCOLORS.length)];
+    let ink = SCOLORS[Math.floor(Math.random()*SCOLORS.length)];
+    const opts = shuffle(SCOLORS);
+    return {word:word.name, ink, opts};
+  }
+  _memDeck(pairs){
+    const faces = MEMFACES.slice(0,pairs);
+    const deck = shuffle([...faces, ...faces]).map((f,i)=>({...f, key:i, flipped:false, matched:false}));
+    return deck;
+  }
+  _seqPattern(len){ const p=[]; for(let i=0;i<len;i++) p.push(Math.floor(Math.random()*4)); return p; }
+  _playSeq(pattern){
+    let i=0;
+    const step=()=>{
+      if(i>=pattern.length){ this.setState(s=>({g:{...s.g, phase:'input', active:-1}})); return; }
+      this.setState(s=>({g:{...s.g, active:pattern[i]}}));
+      setTimeout(()=>{ this.setState(s=>({g:{...s.g, active:-1}})); i++; setTimeout(step, 240); }, 560);
+    };
+    setTimeout(step, 600);
+  }
+
+  // answer handlers
+  pickOption = (i) => {
+    const g=this.state.g; if(!g || g.answered) return;
+    let correct = false;
+    if(g.id==='quiz') correct = (i===g.list[g.round].a);
+    if(g.id==='word') correct = (i===g.list[g.round].a);
+    if(g.id==='math') correct = (i===g.cur.correct);
+    this.setState(s=>({g:{...s.g, sel:i, answered:true, correct: s.g.correct+(correct?1:0)}}));
+  };
+  pickStroop = (i) => {
+    const g=this.state.g; if(!g||g.answered) return;
+    const correct = g.cur.opts[i].hex === g.cur.ink.hex;
+    this.setState(s=>({g:{...s.g, sel:i, answered:true, correct:s.g.correct+(correct?1:0)}}));
+  };
+  nextRound = () => {
+    const g=this.state.g; const last = g.round+1 >= g.n;
+    if(last){ this.finish(); return; }
+    this._scrollTop();
+    this.setState(s=>{
+      const ng={...s.g, round:s.g.round+1, sel:null, answered:false};
+      if(ng.id==='math') ng.cur=this._mathRound(ng.diff);
+      if(ng.id==='stroop') ng.cur=this._stroopRound();
+      return {g:ng};
+    });
+  };
+  memFlip = (i) => {
+    const g=this.state.g; if(!g||g.lock) return;
+    const card=g.deck[i]; if(card.flipped||card.matched) return;
+    const deck=g.deck.map((c,idx)=> idx===i?{...c,flipped:true}:c);
+    if(g.first===null){ this.setState({g:{...g, deck, first:i}}); return; }
+    const moves=g.moves+1;
+    if(deck[g.first].icon===deck[i].icon){
+      const nd=deck.map((c,idx)=> (idx===i||idx===g.first)?{...c,matched:true}:c);
+      const matched=g.matched+1;
+      const done = matched>=g.n;
+      this.setState({g:{...g, deck:nd, first:null, matched, moves}}, ()=>{ if(done) setTimeout(()=>this.finish(),520); });
+    } else {
+      this.setState({g:{...g, deck, first:i, lock:true, moves}});
+      setTimeout(()=>{
+        this.setState(s=>({g:{...s.g, deck:s.g.deck.map((c,idx)=>(idx===i||idx===g.first)?{...c,flipped:false}:c), first:null, lock:false}}));
+      },760);
+    }
+  };
+  seqTap = (p) => {
+    const g=this.state.g; if(!g||g.phase!=='input') return;
+    const input=[...g.input, p];
+    const idx=input.length-1;
+    if(g.pattern[idx]!==p){ this.setState({g:{...g, input, phase:'done', fail:true}}, ()=>setTimeout(()=>this.finish(),700)); return; }
+    if(input.length===g.pattern.length){
+      const correct=g.correct+1, round=g.round+1;
+      if(round>=g.n){ this.setState({g:{...g, input, correct}}, ()=>setTimeout(()=>this.finish(),500)); return; }
+      const len=g.len+1, pattern=this._seqPattern(len);
+      this.setState({g:{...g, correct, round, len, pattern, input:[], phase:'show', active:-1}}, ()=>this._playSeq(pattern));
+    } else {
+      this.setState({g:{...g, input}});
+    }
+  };
+
+  finish(){
+    const g=this.state.g;
+    const per = 25;
+    const raw = g.correct * per * g.mult;
+    const got = this.addPoints(raw);
+    const total = (g.id==='mem'||g.id==='seq') ? g.n : g.n;
+    this.setState(s=>({
+      lastResult:{ name: GAMES.find(x=>x.id===g.id).name, color: GAMES.find(x=>x.id===g.id).color, icon: GAMES.find(x=>x.id===g.id).icon, correct:g.correct, total, got, mult:g.mult, id:g.id },
+      scores:[{game:GAMES.find(x=>x.id===g.id).name, score:got, when:'방금'}, ...s.scores].slice(0,8),
+      screen:'result', g:null
+    }), ()=>this.save({}));
+    this._scrollTop();
+  }
+  replay = () => { const r=this.state.lastResult; if(r) this.openPicker(r.id); };
+
+  // ---------- account ----------
+  doLogin = () => { this.save({auth:true, screen:'home', activeTab:'home'}); };
+  doSignup = () => {
+    const nm=(this.state.suName||'').trim()||'형진엄마';
+    this.save({auth:true, name:nm, screen:'home', activeTab:'home'});
+    this.flash(nm+'님 환영해요!');
+  };
+  logout = () => this.save({auth:false, screen:'login'});
+
+  // ---------- builders ----------
+  iconSpan(name, size, color){
+    return h('span',{style:{display:'block', width:size, height:size, flexShrink:0, background:color||'currentColor', WebkitMask:`url(${ICON(name)}) center/contain no-repeat`, mask:`url(${ICON(name)}) center/contain no-repeat`}});
+  }
+  card(children, extra){ return h('div',{style:{background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:24, boxShadow:'0 1px 4px rgba(0,0,0,.05)', ...(extra||{})}}, children); }
+  subHeader(title, onBack, right){
+    return h('div',{style:{display:'flex', alignItems:'center', gap:8, padding:'8px 4px 16px'}},
+      h('button',{onClick:onBack, style:{border:'none', background:'transparent', padding:'8px 6px 8px 0', display:'flex'}}, this.iconSpan('chevron-left', 28, 'var(--c-text)')),
+      h('div',{style:{flex:1, fontSize:'calc(24px*var(--fs))', fontWeight:800, letterSpacing:'-0.02em', color:'var(--c-text)'}}, title),
+      right||null
+    );
+  }
+
+  fmt(n){ return (n||0).toLocaleString('ko-KR'); }
+
+  // ===== HOME =====
+  buildHome(){
+    const s=this.state; const gr=this.greeting();
+    const pct = Math.min(100, Math.round(s.todayPoints/s.dailyCap*100));
+    const today = 11;
+    const rank = {'아침':0,'점심':1,'저녁':2,'자기 전':3};
+    const todayMeds = [];
+    s.meds.forEach(m=> (m.times||[]).forEach(t=> todayMeds.push({key:m.name+'|'+t, time:t, label:m.name+' '+m.dose})));
+    todayMeds.sort((a,b)=>(rank[a.time]??9)-(rank[b.time]??9));
+    const todayEv = s.events[today]||[];
+    const typeColor = {'약':'#00A63E','병원':'#0066FF','운동':'#FF9200','가족':'#E846CD','기타':'#5B37ED'};
+    const medDone = todayMeds.filter(m=>s.medTaken[m.key]).length;
+    const evDone = todayEv.filter(e=>e.done).length;
+    const remain = (todayMeds.length-medDone) + (todayEv.length-evDone);
+    const latestMsg = s.feed.find(f=>!f.mine) || s.feed[0];
+
+    const greet = h('div',{style:{borderRadius:24, background:gr.g, color:'#fff', padding:'22px', boxShadow:'0 10px 24px rgba(0,0,0,.12)', position:'relative', overflow:'hidden'}},
+      h('div',{style:{position:'absolute', right:-14, top:-14, width:96, height:96, borderRadius:'50%', background:'rgba(255,255,255,.16)'}}),
+      h('div',{style:{display:'flex', alignItems:'center', gap:8}}, this.iconSpan(gr.icon,24,'#fff'), h('span',{style:{fontSize:'calc(14px*var(--fs))', fontWeight:700, opacity:.95, whiteSpace:'nowrap'}}, '6월 11일 수요일')),
+      h('div',{style:{fontSize:'calc(26px*var(--fs))', fontWeight:800, marginTop:8, letterSpacing:'-0.02em'}}, s.name+'님,'),
+      h('div',{style:{fontSize:'calc(24px*var(--fs))', fontWeight:800, letterSpacing:'-0.02em'}}, gr.t));
+
+    const checkRow = (taken, onClick, chipColor, chipText, title, first) => h('button',{onClick, style:{display:'flex', alignItems:'center', gap:12, width:'100%', background:'transparent', border:'none', borderTop: first?'none':'1px solid var(--c-line)', padding:'13px 0', textAlign:'left'}},
+      h('span',{style:{fontSize:'calc(12px*var(--fs))', fontWeight:800, color:'#fff', background:chipColor, padding:'5px 10px', borderRadius:9, flexShrink:0}}, chipText),
+      h('span',{style:{flex:1, fontSize:'calc(17px*var(--fs))', fontWeight:700, color:'var(--c-text)', textDecoration:taken?'line-through':'none', opacity:taken?.4:1}}, title),
+      this.iconSpan(taken?'circle-check-fill':'check-thick', 30, taken?'#00A63E':'var(--c-line)'));
+
+    const rows = [];
+    todayMeds.forEach((m,i)=> rows.push(checkRow(!!s.medTaken[m.key], ()=>this.setState(st=>({medTaken:{...st.medTaken,[m.key]:!st.medTaken[m.key]}})), '#00A63E', m.time, m.label, rows.length===0)));
+    todayEv.forEach((e,i)=> rows.push(checkRow(e.done, ()=>this.toggleEventDone(today,i), typeColor[e.type]||'#5B37ED', e.type, e.title+' · '+e.time, rows.length===0)));
+
+    const todoCard = h('div',{style:{background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:24, padding:'16px 20px', boxShadow:'0 1px 4px rgba(0,0,0,.05)'}},
+      h('button',{onClick:()=>this.go('calendar','calendar'), style:{display:'flex', alignItems:'center', gap:8, width:'100%', background:'transparent', border:'none', padding:'2px 0 8px'}},
+        h('span',{style:{fontSize:'calc(19px*var(--fs))', fontWeight:800, color:'var(--c-text)', flex:1, textAlign:'left'}}, '오늘 챙길 일'),
+        remain>0
+          ? h('span',{style:{fontSize:'calc(13px*var(--fs))', fontWeight:800, color:'#FF5E00', background:'#FFF1E8', padding:'5px 11px', borderRadius:999, whiteSpace:'nowrap'}}, remain+'개 남음')
+          : h('span',{style:{fontSize:'calc(13px*var(--fs))', fontWeight:800, color:'#067A33', background:'#EAFBF0', padding:'5px 11px', borderRadius:999, whiteSpace:'nowrap'}}, '모두 완료'),
+        this.iconSpan('chevron-right',22,'var(--c-faint)')),
+      h('div',null, rows));
+
+    const pointsCard = h('button',{onClick:()=>this.go('points','home'), style:{textAlign:'left', width:'100%', border:'none', borderRadius:24, padding:'20px', background:'linear-gradient(135deg,#5B37ED,#0066FF)', color:'#fff', boxShadow:'0 8px 20px rgba(91,55,237,.24)'}},
+      h('div',{style:{display:'flex', alignItems:'center', gap:7}}, this.iconSpan('coins-fill',22,'#fff'), h('span',{style:{fontSize:'calc(14px*var(--fs))', fontWeight:700, opacity:.95}}, '내 포인트')),
+      h('div',{style:{fontSize:'calc(34px*var(--fs))', fontWeight:800, letterSpacing:'-0.02em', marginTop:4}}, this.fmt(s.points)+'P'),
+      h('div',{style:{height:10, borderRadius:6, background:'rgba(255,255,255,.28)', overflow:'hidden', marginTop:14}}, h('div',{style:{width:pct+'%', height:'100%', background:'#fff', borderRadius:6}})),
+      h('div',{style:{display:'flex', justifyContent:'space-between', marginTop:8, fontSize:'calc(13px*var(--fs))', opacity:.95}}, h('span',null,'오늘 '+this.fmt(s.todayPoints)+'P 모았어요'), h('span',null,'하루 '+this.fmt(s.dailyCap)+'P')));
+
+    const gameCTA = h('button',{onClick:()=>this.go('games','games'), style:{width:'100%', borderRadius:20, height:68, background:'var(--c-card)', border:'1px solid var(--c-line)', boxShadow:'0 1px 4px rgba(0,0,0,.06)', display:'flex', alignItems:'center', gap:14, padding:'0 18px'}},
+      h('div',{style:{width:48,height:48,borderRadius:14, background:'#FBE9FB', display:'flex',alignItems:'center',justifyContent:'center', flexShrink:0}}, this.iconSpan('sparkle-fill',26,'#E846CD')),
+      h('div',{style:{flex:1, textAlign:'left'}}, h('div',{style:{fontSize:'calc(18px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, '오늘의 두뇌 게임'), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:1}}, '게임하고 포인트 모으기')),
+      this.iconSpan('chevron-right',24,'var(--c-faint)'));
+
+    const familyCard = h('button',{onClick:()=>this.go('family','family'), style:{textAlign:'left', width:'100%', border:'1px solid var(--c-line)', borderRadius:24, background:'var(--c-card)', padding:'16px', display:'flex', alignItems:'center', gap:14, boxShadow:'0 1px 4px rgba(0,0,0,.05)'}},
+      h('div',{style:{width:56,height:56,borderRadius:16, background:s.photos[0].grad, flexShrink:0}}),
+      h('div',{style:{flex:1, minWidth:0}},
+        h('div',{style:{display:'flex', alignItems:'center', gap:6, marginBottom:3}}, this.iconSpan('persons',18,'#0066FF'), h('span',{style:{fontSize:'calc(13px*var(--fs))', fontWeight:800, color:'#0066FF'}}, latestMsg.mine?'가족 소식':latestMsg.who)),
+        h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:600, color:'var(--c-text)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}, latestMsg.text)),
+      this.iconSpan('chevron-right',24,'var(--c-faint)'));
+
+    return h('div',{style:{padding:'4px 22px 28px', display:'flex', flexDirection:'column', gap:16}}, greet, todoCard, pointsCard, gameCTA, familyCard);
+  }
+
+  // ===== GAME BOARD =====
+  buildGame(){
+    const g=this.state.g; if(!g) return h('div');
+    const meta=GAMES.find(x=>x.id===g.id);
+    const top = h('div',{style:{display:'flex', alignItems:'center', gap:12, padding:'4px 0 18px'}},
+      h('button',{onClick:()=>this.go('games','games'), style:{border:'none', background:'var(--c-card)', width:44, height:44, borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 4px rgba(0,0,0,.06)'}}, this.iconSpan('chevron-left',24,'var(--c-text)')),
+      h('div',{style:{flex:1}},
+        h('div',{style:{fontSize:'calc(19px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, meta.name),
+        h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, DIFF[g.diff].label+' · 포인트 '+g.mult+'배')),
+      g.id==='mem' ? null : h('div',{style:{fontSize:'calc(15px*var(--fs))', fontWeight:800, color:meta.color, background:meta.color+'1a', padding:'8px 12px', borderRadius:12}}, (g.round+1)+' / '+g.n)
+    );
+
+    let board;
+    if(g.id==='quiz' || g.id==='word'){
+      const q = g.list[g.round];
+      const correctIdx = q.a;
+      board = h('div',null,
+        this.card(h('div',{style:{padding:'26px 22px', textAlign:'center'}},
+          h('div',{style:{display:'inline-flex', width:54, height:54, borderRadius:16, background:meta.color+'1a', alignItems:'center', justifyContent:'center', marginBottom:14}}, this.iconSpan(meta.icon,28,meta.color)),
+          h('div',{style:{fontSize:'calc(15px*var(--fs))', color:'var(--c-sub)', fontWeight:700, marginBottom:6}}, g.id==='word'?'어울리는 짝은?':'문제'),
+          h('div',{style:{fontSize:'calc(23px*var(--fs))', fontWeight:800, color:'var(--c-text)', lineHeight:1.4}}, q.q))),
+        h('div',{style:{display:'flex', flexDirection:'column', gap:12, marginTop:18}},
+          q.o ? q.o.map((opt,i)=>this._optBtn(opt,i,correctIdx,g)) : q.opts.map((opt,i)=>this._optBtn(opt,i,correctIdx,g)))
+      );
+    } else if(g.id==='math'){
+      const c=g.cur;
+      board = h('div',null,
+        this.card(h('div',{style:{padding:'30px 22px', textAlign:'center'}},
+          h('div',{style:{fontSize:'calc(15px*var(--fs))', color:'var(--c-sub)', fontWeight:700, marginBottom:10}}, '계산해 보세요'),
+          h('div',{style:{fontSize:'calc(46px*var(--fs))', fontWeight:800, color:'var(--c-text)', letterSpacing:'-0.01em'}}, `${c.a} ${c.plus?'+':'−'} ${c.b} = ?`))),
+        h('div',{style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:18}},
+          c.opts.map((opt,i)=>this._optBtn(String(opt),i,c.correct,g,true)))
+      );
+    } else if(g.id==='stroop'){
+      const c=g.cur;
+      board = h('div',null,
+        this.card(h('div',{style:{padding:'34px 22px', textAlign:'center'}},
+          h('div',{style:{fontSize:'calc(15px*var(--fs))', color:'var(--c-sub)', fontWeight:700, marginBottom:16}}, '글자의 색깔을 고르세요'),
+          h('div',{style:{fontSize:'calc(56px*var(--fs))', fontWeight:800, color:c.ink.hex, letterSpacing:'-0.01em'}}, c.word))),
+        h('div',{style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:18}},
+          c.opts.map((col,i)=>{
+            const picked=g.sel===i; const isInk=col.hex===c.ink.hex; const showState=g.answered&&(picked||isInk);
+            return h('button',{key:i, onClick:()=>this.pickStroop(i), disabled:g.answered,
+              style:{display:'flex', alignItems:'center', justifyContent:'center', gap:10, height:72, borderRadius:18, border:'2px solid '+(showState?(isInk?'#00A63E':'#E52222'):'var(--c-line)'), background:'var(--c-card)', fontSize:'calc(18px*var(--fs))', fontWeight:800, color:'var(--c-text)'}},
+              h('span',{style:{width:26, height:26, borderRadius:'50%', background:col.hex, flexShrink:0}}),
+              col.name);
+          }))
+      );
+    } else if(g.id==='mem'){
+      const cols = g.n<=3?3 : g.n<=6?4 : 4;
+      board = h('div',null,
+        h('div',{style:{display:'flex', justifyContent:'center', gap:18, marginBottom:16}},
+          h('div',{style:{textAlign:'center'}}, h('div',{style:{fontSize:'calc(13px*var(--fs))',color:'var(--c-sub)',fontWeight:700}},'맞춘 짝'), h('div',{style:{fontSize:'calc(22px*var(--fs))',fontWeight:800,color:meta.color}}, g.matched+' / '+g.n)),
+          h('div',{style:{textAlign:'center'}}, h('div',{style:{fontSize:'calc(13px*var(--fs))',color:'var(--c-sub)',fontWeight:700}},'뒤집기'), h('div',{style:{fontSize:'calc(22px*var(--fs))',fontWeight:800,color:'var(--c-text)'}}, g.moves+'번'))),
+        h('div',{style:{display:'grid', gridTemplateColumns:`repeat(${cols},1fr)`, gap:12}},
+          g.deck.map((c,i)=>{
+            const up=c.flipped||c.matched;
+            return h('button',{key:c.key, onClick:()=>this.memFlip(i), style:{aspectRatio:'3/4', borderRadius:16, border:'none', padding:0, perspective:'600px', background:'transparent'}},
+              h('div',{style:{position:'relative', width:'100%', height:'100%', transition:'transform .4s', transformStyle:'preserve-3d', transform: up?'rotateY(180deg)':'none'}},
+                h('div',{style:{position:'absolute', inset:0, borderRadius:16, backfaceVisibility:'hidden', background:'linear-gradient(135deg,#C9DEFE,#9EC5FF)', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #fff'}}, this.iconSpan('sparkle-fill',26,'rgba(255,255,255,.9)')),
+                h('div',{style:{position:'absolute', inset:0, borderRadius:16, backfaceVisibility:'hidden', transform:'rotateY(180deg)', background: c.matched? c.color+'22':'var(--c-card)', border:'2px solid '+(c.matched?c.color:'var(--c-line)'), display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan(c.icon,34,c.color))));
+          }))
+      );
+    } else if(g.id==='seq'){
+      board = h('div',null,
+        this.card(h('div',{style:{padding:'18px', textAlign:'center'}},
+          h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color: g.phase==='show'?meta.color:'var(--c-text)'}}, g.phase==='show'?'잘 보세요...':'순서대로 눌러요'),
+          h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:4}}, (g.round+1)+'단계 · '+g.pattern.length+'개'))),
+        h('div',{style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginTop:18}},
+          SEQPADS.map((p,i)=>{
+            const active=g.active===i;
+            return h('button',{key:i, onClick:()=>this.seqTap(i), disabled:g.phase!=='input',
+              style:{aspectRatio:'1/1', borderRadius:22, border:'none', background: active?p.lit:p.color, boxShadow: active?('0 0 30px '+p.lit):'inset 0 -6px 0 rgba(0,0,0,.15)', transition:'all .12s', transform: active?'scale(.97)':'none'}});
+          })),
+        h('div',{style:{display:'flex', justifyContent:'center', gap:8, marginTop:18}},
+          g.pattern.map((_,i)=> h('div',{key:i, style:{width:10, height:10, borderRadius:'50%', background: i<g.input.length?meta.color:'var(--c-line)'}})))
+      );
+    }
+
+    return h('div',{style:{padding:'4px 22px 28px'}}, top, board,
+      (g.answered && g.id!=='mem' && g.id!=='seq') ? h('button',{onClick:this.nextRound, style:{marginTop:20, width:'100%', border:'none', borderRadius:18, height:62, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800}}, (g.round+1>=g.n)?'결과 보기':'다음 문제') : null
+    );
+  }
+  _optBtn(label, i, correctIdx, g, center){
+    const picked=g.sel===i; const isCorrect=i===correctIdx; const show=g.answered&&(picked||isCorrect);
+    let bd='var(--c-line)', bg='var(--c-card)', cl='var(--c-text)';
+    if(show){ if(isCorrect){bd='#00A63E';bg='#EAFBF0';cl='#067A33';} else {bd='#E52222';bg='#FEECEC';cl='#C01616';} }
+    return h('button',{key:i, onClick:()=>this.pickOption(i), disabled:g.answered,
+      style:{display:'flex', alignItems:'center', justifyContent: center?'center':'space-between', gap:10, minHeight:64, padding:'0 18px', borderRadius:18, border:'2px solid '+bd, background:bg, fontSize:'calc(19px*var(--fs))', fontWeight:700, color:cl, textAlign:'left'}},
+      h('span',null,label),
+      show? this.iconSpan(isCorrect?'circle-check-fill':'circle-info', 24, isCorrect?'#00A63E':'#E52222') : null);
+  }
+
+  // ===== RESULT =====
+  buildResult(){
+    const r=this.state.lastResult; if(!r) return h('div');
+    const great = r.total>0 && r.correct/r.total>=0.7;
+    return h('div',{style:{padding:'30px 24px', minHeight:'100%', display:'flex', flexDirection:'column'}},
+      h('div',{style:{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center'}},
+        h('div',{style:{width:104, height:104, borderRadius:32, background:r.color, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 14px 30px '+r.color+'55', animation:'cypop .5s ease'}}, this.iconSpan(great?'trophy':r.icon, 54, '#fff')),
+        h('div',{style:{fontSize:'calc(28px*var(--fs))', fontWeight:800, color:'var(--c-text)', marginTop:24, letterSpacing:'-0.02em'}}, great?'아주 잘하셨어요!':'잘하셨어요!'),
+        h('div',{style:{fontSize:'calc(17px*var(--fs))', color:'var(--c-sub)', marginTop:6}}, r.name),
+        h('div',{style:{display:'flex', gap:14, marginTop:26, width:'100%'}},
+          this.card(h('div',{style:{padding:'18px', textAlign:'center'}}, h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', fontWeight:700}},'맞힌 개수'), h('div',{style:{fontSize:'calc(30px*var(--fs))', fontWeight:800, color:'var(--c-text)', marginTop:4}}, r.correct+' / '+r.total)), {flex:1}),
+          this.card(h('div',{style:{padding:'18px', textAlign:'center'}}, h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', fontWeight:700}},'얻은 포인트'), h('div',{style:{fontSize:'calc(30px*var(--fs))', fontWeight:800, color:'#0066FF', marginTop:4}}, '+'+r.got)), {flex:1})),
+        h('div',{style:{marginTop:14, fontSize:'calc(14px*var(--fs))', color:'var(--c-sub)', background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:14, padding:'10px 16px'}}, '포인트 '+r.mult+'배 적용됨')
+      ),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:12, marginTop:20}},
+        h('button',{onClick:this.replay, style:{border:'none', borderRadius:18, height:62, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8}}, this.iconSpan('refresh',24,'#fff'), '다시하기'),
+        h('button',{onClick:()=>this.go('games','games'), style:{border:'1px solid var(--c-line)', borderRadius:18, height:60, background:'var(--c-card)', color:'var(--c-text)', fontSize:'calc(17px*var(--fs))', fontWeight:800}}, '다른 게임 하기'))
+    );
+  }
+
+  // ---------- handlers (screens) ----------
+  requestExchange = (amt) => {
+    if(this.state.points < amt){ this.flash('포인트가 부족해요'); return; }
+    this.setState(s=>({ exchanges:[{amount:amt, status:'대기', when:'방금'}, ...s.exchanges] }));
+    this.flash(this.fmt(amt)+'P 환전을 신청했어요');
+  };
+  approveExchange = (i) => { this.setState(s=>({ exchanges:s.exchanges.map((e,idx)=> idx===i?{...e,status:'완료'}:e) })); this.flash('송금 준비 완료로 바꿨어요'); };
+  toggleEventDone = (day,i) => this.setState(s=>{ const ev=(s.events[day]||[]).map((e,idx)=> idx===i?{...e,done:!e.done}:e); return {events:{...s.events,[day]:ev}}; });
+  openEvtAdd = () => this.setState({calAdd:true, newEvt:{type:'약', title:'', time:'09:00'}});
+  saveEvent = () => { const e=this.state.newEvt; if(!e.title.trim()){ this.flash('내용을 적어주세요'); return; } const d=this.state.selDate; this.setState(s=>({ events:{...s.events,[d]:[...(s.events[d]||[]), {...e, done:false}]}, calAdd:false })); this.flash('알림 시간에 맞춰 알려드릴게요'); };
+  openMedAdd = () => this.setState({medAdd:true, newMed:{name:'', dose:'1정', times:[]}});
+  saveMed = () => { const m=this.state.newMed; if(!m.name.trim()||m.times.length===0){ this.flash('약 이름과 시간을 정해주세요'); return; } this.setState(s=>({ meds:[...s.meds, m], medAdd:false })); this.flash('2주치 복용 알림을 만들었어요'); };
+  removeMed = (i) => this.setState(s=>({ meds:s.meds.filter((_,idx)=>idx!==i) }));
+  toggleMedTime = (t) => this.setState(s=>{ const has=s.newMed.times.includes(t); return {newMed:{...s.newMed, times: has? s.newMed.times.filter(x=>x!==t):[...s.newMed.times,t]}}; });
+  setFont = (v) => this.save({fontScale:v});
+  toggleHC = () => this.save({highContrast:!this.state.highContrast});
+  toggleNotify = () => this.save({notifyOn:!this.state.notifyOn});
+  startName = () => this.setState({nameEdit:true, editName:this.state.name});
+  saveName = () => { const n=(this.state.editName||'').trim(); if(n) this.save({name:n}); this.setState({nameEdit:false}); this.flash('이름을 바꿨어요'); };
+  uploadPhoto = () => { const grads=['linear-gradient(135deg,#FFB8F3,#E846CD)','linear-gradient(135deg,#A6F26B,#42A800)','linear-gradient(135deg,#A1E1FF,#0098B2)','linear-gradient(135deg,#FFD49C,#FF7B2E)']; const g=grads[Math.floor(Math.random()*grads.length)]; this.setState(s=>({photos:[{grad:g, cap:'새로 올린 사진', when:'방금'}, ...s.photos]})); this.addPoints(5); this.flash('사진을 올렸어요 +5P'); };
+  sendChild = () => { const t=(this.state.childMsg||'').trim(); if(!t) return; this.setState(s=>({ feed:[{who:'아들 형진', text:t, when:'방금', mine:false}, ...s.feed], childMsg:'' })); this.flash('어머니께 소식을 보냈어요'); };
+  connectChild = () => { this.setState({childConnected:true}); this.flash('어머니와 연결됐어요'); };
+
+  // ===== POINTS =====
+  buildPoints(){
+    const s=this.state; const pct=Math.min(100, Math.round(s.todayPoints/s.dailyCap*100));
+    return h('div',{style:{padding:'4px 22px 28px'}},
+      this.subHeader('포인트', ()=>this.go('home','home')),
+      h('div',{style:{borderRadius:26, background:'linear-gradient(135deg,#5B37ED,#0066FF)', color:'#fff', padding:'24px', boxShadow:'0 12px 28px rgba(91,55,237,.28)', position:'relative', overflow:'hidden'}},
+        h('div',{style:{position:'absolute', right:-20, top:-20, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,.14)'}}),
+        h('div',{style:{display:'flex', alignItems:'center', gap:8}}, this.iconSpan('coins-fill',24,'#fff'), h('span',{style:{fontSize:'calc(15px*var(--fs))', fontWeight:700, opacity:.95}}, '내 포인트')),
+        h('div',{style:{fontSize:'calc(46px*var(--fs))', fontWeight:800, letterSpacing:'-0.02em', marginTop:6}}, this.fmt(s.points)+'P'),
+        h('div',{style:{height:12, borderRadius:7, background:'rgba(255,255,255,.28)', overflow:'hidden', marginTop:16}}, h('div',{style:{width:pct+'%', height:'100%', background:'#fff', borderRadius:7}})),
+        h('div',{style:{display:'flex', justifyContent:'space-between', marginTop:10, fontSize:'calc(14px*var(--fs))', opacity:.96, fontWeight:600}}, h('span',null,'오늘 '+this.fmt(s.todayPoints)+'P'), h('span',null,'하루 최대 '+this.fmt(s.dailyCap)+'P'))),
+      h('button',{onClick:()=>this.go('exchange','home'), style:{marginTop:16, width:'100%', border:'none', borderRadius:18, height:64, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8}}, this.iconSpan('coins-fill',24,'#fff'), '환전 신청하기'),
+      h('div',{style:{display:'flex', alignItems:'center', gap:8, marginTop:14, padding:'14px 16px', background:'#FFF6E9', border:'1px solid #FFE6C6', borderRadius:16, fontSize:'calc(14px*var(--fs))', color:'#9C5800', fontWeight:600, lineHeight:1.5}}, this.iconSpan('circle-info',20,'#D47800'), h('span',null,'게임하고 사진을 올리면 모여요. 자정(밤 12시)에 오늘 점수가 새로 시작돼요.')),
+      h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color:'var(--c-text)', margin:'24px 0 12px'}}, '최근 적립'),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:10}},
+        s.scores.map((sc,i)=> h('div',{key:i, style:{display:'flex', alignItems:'center', gap:12, background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:16, padding:'14px 16px'}},
+          h('div',{style:{width:42, height:42, borderRadius:12, background:'#EAF2FE', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('sparkle-fill',22,'#0066FF')),
+          h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:700, color:'var(--c-text)'}}, sc.game), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, sc.when)),
+          h('div',{style:{fontSize:'calc(17px*var(--fs))', fontWeight:800, color:'#00A63E'}}, '+'+sc.score+'P'))))
+    );
+  }
+
+  // ===== EXCHANGE =====
+  buildExchange(){
+    const s=this.state; const amt=s.exAmt||10000;
+    const opts=[5000,10000,30000,50000];
+    const stColor={ '대기':{c:'#D47800',b:'#FEF4E6'}, '완료':{c:'#00A63E',b:'#EAFBF0'}, '거절':{c:'#E52222',b:'#FEECEC'} };
+    return h('div',{style:{padding:'4px 22px 28px'}},
+      this.subHeader('환전 신청', ()=>this.go('points','home')),
+      h('div',{style:{fontSize:'calc(15px*var(--fs))', color:'var(--c-sub)', marginBottom:14}}, '보유 '+this.fmt(s.points)+'P · 1P = 1원'),
+      h('div',{style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}},
+        opts.map(o=> h('button',{key:o, onClick:()=>this.setState({exAmt:o}), style:{padding:'18px 10px', borderRadius:18, border:'2px solid '+(amt===o?'#0066FF':'var(--c-line)'), background: amt===o?'#EAF2FE':'var(--c-card)', fontSize:'calc(20px*var(--fs))', fontWeight:800, color: amt===o?'#0066FF':'var(--c-text)'}}, this.fmt(o)+'P'))),
+      h('button',{onClick:()=>this.requestExchange(amt), style:{marginTop:16, width:'100%', border:'none', borderRadius:18, height:64, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800}}, this.fmt(amt)+'P 환전 신청'),
+      h('div',{style:{display:'flex', alignItems:'flex-start', gap:8, marginTop:14, padding:'14px 16px', background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:16, fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', lineHeight:1.5}}, this.iconSpan('circle-info',20,'var(--c-faint)'), h('span',null,'신청하면 자녀에게 알림이 가요. 자녀가 승인하면 실제 송금은 가족이 해드려요.')),
+      h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color:'var(--c-text)', margin:'24px 0 12px'}}, '신청 내역'),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:10}},
+        s.exchanges.map((e,i)=> h('div',{key:i, style:{display:'flex', alignItems:'center', gap:12, background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:16, padding:'14px 16px'}},
+          h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(17px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, this.fmt(e.amount)+'P'), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, e.when)),
+          h('span',{style:{fontSize:'calc(13px*var(--fs))', fontWeight:800, color:stColor[e.status].c, background:stColor[e.status].b, padding:'6px 12px', borderRadius:10}}, e.status))))
+    );
+  }
+
+  // ===== CALENDAR =====
+  buildCalendar(){
+    const s=this.state;
+    const first=new Date(2026,5,1).getDay(); const days=30;
+    const cells=[]; for(let i=0;i<first;i++) cells.push(null); for(let d=1;d<=days;d++) cells.push(d);
+    const wd=['일','월','화','수','목','금','토'];
+    const typeColor={'약':'#00A63E','병원':'#0066FF','운동':'#FF9200','가족':'#E846CD','기타':'#5B37ED'};
+    const dayEvents=s.events[s.selDate]||[];
+    return h('div',{style:{padding:'4px 22px 28px'}},
+      this.subHeader('일정', ()=>this.go('home','home'),
+        h('button',{onClick:this.openEvtAdd, style:{border:'none', background:'var(--c-primary)', color:'#fff', borderRadius:13, height:42, padding:'0 14px', display:'flex', alignItems:'center', gap:5, fontSize:'calc(14px*var(--fs))', fontWeight:800}}, this.iconSpan('plus',20,'#fff'), '추가')),
+      h('div',{style:{textAlign:'center', fontSize:'calc(19px*var(--fs))', fontWeight:800, color:'var(--c-text)', marginBottom:14}}, '2026년 6월'),
+      h('div',{style:{display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:6}},
+        wd.map((w,i)=> h('div',{key:i, style:{textAlign:'center', fontSize:'calc(13px*var(--fs))', fontWeight:700, color: i===0?'#E52222':i===6?'#0066FF':'var(--c-sub)'}}, w))),
+      h('div',{style:{display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2}},
+        cells.map((d,i)=>{
+          if(d===null) return h('div',{key:i});
+          const has=(s.events[d]||[]).length>0; const sel=s.selDate===d;
+          return h('button',{key:i, onClick:()=>this.setState({selDate:d}),
+            style:{aspectRatio:'1/1', border:'none', borderRadius:12, background: sel?'#0066FF':'transparent', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, padding:0}},
+            h('span',{style:{fontSize:'calc(15px*var(--fs))', fontWeight: sel?800:600, color: sel?'#fff':(i%7===0?'#E52222':(i%7===6?'#0066FF':'var(--c-text)'))}}, d),
+            h('span',{style:{width:5, height:5, borderRadius:'50%', background: has?(sel?'#fff':'#FF5E00'):'transparent'}}));
+        })),
+      h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color:'var(--c-text)', margin:'22px 0 12px'}}, '6월 '+s.selDate+'일 일정'),
+      dayEvents.length? h('div',{style:{display:'flex', flexDirection:'column', gap:10}},
+        dayEvents.map((e,i)=> h('div',{key:i, style:{display:'flex', alignItems:'center', gap:12, background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:16, padding:'14px 16px'}},
+          h('span',{style:{fontSize:'calc(12px*var(--fs))', fontWeight:800, color:'#fff', background:typeColor[e.type]||'#5B37ED', padding:'5px 10px', borderRadius:9}}, e.type),
+          h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:700, color:'var(--c-text)', textDecoration: e.done?'line-through':'none', opacity:e.done?.5:1}}, e.title), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, e.time)),
+          h('button',{onClick:()=>this.toggleEventDone(s.selDate,i), style:{border:'none', background:'transparent', padding:4}}, this.iconSpan(e.done?'circle-check-fill':'check-thick', 28, e.done?'#00A63E':'var(--c-line)')))))
+        : h('div',{style:{textAlign:'center', color:'var(--c-faint)', fontSize:'calc(15px*var(--fs))', padding:'24px 0'}}, '이 날은 일정이 없어요'),
+      this.evtComposer()
+    );
+  }
+  evtComposer(){
+    if(!this.state.calAdd) return null;
+    const e=this.state.newEvt; const types=['약','병원','운동','가족','기타'];
+    return h('div',{onClick:()=>this.setState({calAdd:false}), style:{position:'fixed', inset:0}},
+      h('div',{onClick:(ev)=>ev.stopPropagation(), style:{position:'absolute'}},
+        this._sheet('일정 추가',
+          h('div',null,
+            h('div',{style:{display:'flex', gap:8, flexWrap:'wrap', marginBottom:14}}, types.map(t=> h('button',{key:t, onClick:()=>this.setState({newEvt:{...e,type:t}}), style:{padding:'10px 16px', borderRadius:12, border:'2px solid '+(e.type===t?'#0066FF':'var(--c-line)'), background:e.type===t?'#EAF2FE':'var(--c-card)', fontSize:'calc(15px*var(--fs))', fontWeight:700, color:e.type===t?'#0066FF':'var(--c-text)'}}, t))),
+            h('input',{value:e.title, onChange:(ev)=>this.setState({newEvt:{...e,title:ev.target.value}}), placeholder:'무슨 일정인가요?', style:{width:'100%', border:'2px solid var(--c-line)', borderRadius:14, padding:'0 16px', height:58, fontSize:'calc(17px*var(--fs))', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', marginBottom:12, boxSizing:'border-box'}}),
+            h('input',{type:'time', value:e.time, onChange:(ev)=>this.setState({newEvt:{...e,time:ev.target.value}}), style:{width:'100%', border:'2px solid var(--c-line)', borderRadius:14, padding:'0 16px', height:58, fontSize:'calc(17px*var(--fs))', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', boxSizing:'border-box'}}),
+            h('button',{onClick:this.saveEvent, style:{marginTop:16, width:'100%', border:'none', borderRadius:16, height:60, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800}}, '저장하기')))));
+  }
+  _sheet(title, body){
+    return h('div',{style:{position:'absolute', inset:0, background:'rgba(10,12,20,.42)', zIndex:30, display:'flex', alignItems:'flex-end'}},
+      h('div',{style:{width:'100%', background:'var(--c-card)', borderRadius:'28px 28px 0 0', padding:'22px 22px 30px', animation:'cyrise .26s ease'}},
+        h('div',{style:{width:44, height:5, borderRadius:3, background:'var(--c-line)', margin:'0 auto 16px'}}),
+        h('div',{style:{fontSize:'calc(22px*var(--fs))', fontWeight:800, color:'var(--c-text)', marginBottom:18}}, title),
+        body));
+  }
+
+  // ===== MEDS =====
+  buildMeds(){
+    const s=this.state;
+    return h('div',{style:{padding:'4px 22px 28px'}},
+      this.subHeader('약 관리', ()=>this.go('home','home'),
+        h('button',{onClick:this.openMedAdd, style:{border:'none', background:'var(--c-primary)', color:'#fff', borderRadius:13, height:42, padding:'0 14px', display:'flex', alignItems:'center', gap:5, fontSize:'calc(14px*var(--fs))', fontWeight:800}}, this.iconSpan('plus',20,'#fff'), '추가')),
+      h('div',{style:{display:'flex', alignItems:'flex-start', gap:8, padding:'14px 16px', background:'#EAFBF0', border:'1px solid #ACFCC7', borderRadius:16, fontSize:'calc(14px*var(--fs))', color:'#067A33', fontWeight:600, lineHeight:1.5, marginBottom:18}}, this.iconSpan('pill',20,'#00A63E'), h('span',null,'약을 등록하면 2주치 복용 알림이 자동으로 만들어져요.')),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:12}},
+        s.meds.map((m,i)=> h('div',{key:i, style:{display:'flex', alignItems:'center', gap:14, background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:18, padding:'16px'}},
+          h('div',{style:{width:52, height:52, borderRadius:16, background:'#EAFBF0', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}, this.iconSpan('pill',28,'#00A63E')),
+          h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(18px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, m.name+' · '+m.dose),
+            h('div',{style:{display:'flex', gap:6, marginTop:6, flexWrap:'wrap'}}, m.times.map((t,ti)=> h('span',{key:ti, style:{fontSize:'calc(12px*var(--fs))', fontWeight:700, color:'#0066FF', background:'#EAF2FE', padding:'4px 10px', borderRadius:8}}, t)))),
+          h('button',{onClick:()=>this.removeMed(i), style:{border:'none', background:'transparent', padding:6}}, this.iconSpan('trash',24,'var(--c-faint)')))),
+        s.meds.length===0? h('div',{style:{textAlign:'center', color:'var(--c-faint)', fontSize:'calc(15px*var(--fs))', padding:'24px 0'}}, '등록된 약이 없어요') : null),
+      this.medComposer()
+    );
+  }
+  medComposer(){
+    if(!this.state.medAdd) return null;
+    const m=this.state.newMed; const times=['아침','점심','저녁','자기 전'];
+    return h('div',{onClick:()=>this.setState({medAdd:false}), style:{position:'fixed', inset:0}},
+      h('div',{onClick:(ev)=>ev.stopPropagation()},
+        this._sheet('약 추가',
+          h('div',null,
+            h('input',{value:m.name, onChange:(ev)=>this.setState({newMed:{...m,name:ev.target.value}}), placeholder:'약 이름 (예: 혈압약)', style:{width:'100%', border:'2px solid var(--c-line)', borderRadius:14, padding:'0 16px', height:58, fontSize:'calc(17px*var(--fs))', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', marginBottom:12, boxSizing:'border-box'}}),
+            h('input',{value:m.dose, onChange:(ev)=>this.setState({newMed:{...m,dose:ev.target.value}}), placeholder:'용량 (예: 1정)', style:{width:'100%', border:'2px solid var(--c-line)', borderRadius:14, padding:'0 16px', height:58, fontSize:'calc(17px*var(--fs))', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', marginBottom:14, boxSizing:'border-box'}}),
+            h('div',{style:{fontSize:'calc(14px*var(--fs))', fontWeight:700, color:'var(--c-sub)', marginBottom:8}}, '먹는 시간'),
+            h('div',{style:{display:'flex', gap:8, flexWrap:'wrap'}}, times.map(t=>{ const on=m.times.includes(t); return h('button',{key:t, onClick:()=>this.toggleMedTime(t), style:{padding:'12px 16px', borderRadius:12, border:'2px solid '+(on?'#00A63E':'var(--c-line)'), background:on?'#EAFBF0':'var(--c-card)', fontSize:'calc(15px*var(--fs))', fontWeight:700, color:on?'#067A33':'var(--c-text)'}}, t); })),
+            h('button',{onClick:this.saveMed, style:{marginTop:18, width:'100%', border:'none', borderRadius:16, height:60, background:'var(--c-primary)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800}}, '저장하기')))));
+  }
+
+  // ===== FAMILY =====
+  buildFamily(){
+    const s=this.state;
+    return h('div',{style:{padding:'4px 22px 28px'}},
+      this.subHeader('가족', ()=>this.go('home','home')),
+      h('button',{onClick:this.uploadPhoto, style:{width:'100%', border:'none', borderRadius:18, height:64, background:'linear-gradient(135deg,#0098B2,#0066FF)', color:'#fff', fontSize:'calc(18px*var(--fs))', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8, boxShadow:'0 8px 20px rgba(0,102,255,.2)'}}, this.iconSpan('upload',24,'#fff'), '사진 올리기 (+5P)'),
+      h('div',{style:{display:'flex', alignItems:'center', gap:12, marginTop:16, padding:'18px', background:'var(--c-card)', border:'1px dashed #9EC5FF', borderRadius:18}},
+        h('div',{style:{width:50, height:50, borderRadius:14, background:'#EAF2FE', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('persons',24,'#0066FF')),
+        h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(14px*var(--fs))', color:'var(--c-sub)', fontWeight:600}}, '자녀 연결 코드'), h('div',{style:{fontSize:'calc(26px*var(--fs))', fontWeight:800, color:'var(--c-text)', letterSpacing:'0.1em'}}, s.connectCode)),
+        h('button',{onClick:()=>{ this.setState({connectCode: Math.random().toString(36).slice(2,6).toUpperCase()}); this.flash('새 코드를 만들었어요'); }, style:{border:'1px solid var(--c-line)', background:'var(--c-card)', borderRadius:12, padding:'10px 12px', fontSize:'calc(13px*var(--fs))', fontWeight:700, color:'var(--c-sub)'}}, '새로')),
+      h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color:'var(--c-text)', margin:'24px 0 12px'}}, '내가 올린 사진'),
+      h('div',{style:{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}},
+        s.photos.map((p,i)=> h('div',{key:i, style:{borderRadius:16, overflow:'hidden', border:'1px solid var(--c-line)'}},
+          h('div',{style:{height:110, background:p.grad}}),
+          h('div',{style:{padding:'10px 12px', background:'var(--c-card)'}}, h('div',{style:{fontSize:'calc(13px*var(--fs))', fontWeight:700, color:'var(--c-text)', lineHeight:1.3}}, p.cap), h('div',{style:{fontSize:'calc(11px*var(--fs))', color:'var(--c-faint)', marginTop:3}}, p.when))))),
+      h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:800, color:'var(--c-text)', margin:'24px 0 12px'}}, '가족이 보낸 소식'),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:10}},
+        s.feed.map((f,i)=> h('div',{key:i, style:{display:'flex', justifyContent: f.mine?'flex-end':'flex-start'}},
+          h('div',{style:{maxWidth:'82%', background: f.mine?'#0066FF':'var(--c-card)', color: f.mine?'#fff':'var(--c-text)', border: f.mine?'none':'1px solid var(--c-line)', borderRadius:18, padding:'12px 16px'}},
+            f.mine?null:h('div',{style:{fontSize:'calc(12px*var(--fs))', fontWeight:800, color:'#0066FF', marginBottom:3}}, f.who),
+            h('div',{style:{fontSize:'calc(16px*var(--fs))', fontWeight:500, lineHeight:1.45}}, f.text),
+            h('div',{style:{fontSize:'calc(11px*var(--fs))', opacity:.7, marginTop:4, textAlign:'right'}}, f.when)))))
+    );
+  }
+
+  // ===== SETTINGS =====
+  buildSettings(){
+    const s=this.state;
+    const fonts=[{label:'보통',v:1},{label:'크게',v:1.18},{label:'아주 크게',v:1.4}];
+    const toggle=(on,onClick)=> h('button',{onClick, style:{width:56, height:32, borderRadius:18, border:'none', background:on?'#0066FF':'var(--c-line)', position:'relative', flexShrink:0, transition:'background .2s'}}, h('div',{style:{position:'absolute', top:3, left:on?27:3, width:26, height:26, borderRadius:'50%', background:'#fff', boxShadow:'0 1px 3px rgba(0,0,0,.2)', transition:'left .2s'}}));
+    const rowCard=(children)=> h('div',{style:{background:'var(--c-card)', border:'1px solid var(--c-line)', borderRadius:18, padding:'18px'}}, children);
+    return h('div',{style:{padding:'4px 22px 32px'}},
+      this.subHeader('설정', ()=>this.go('home','home')),
+      h('div',{style:{display:'flex', flexDirection:'column', gap:14}},
+        rowCard(h('div',null,
+          h('div',{style:{display:'flex', alignItems:'center', gap:14}},
+            h('div',{style:{width:54, height:54, borderRadius:'50%', background:'linear-gradient(135deg,#0066FF,#5B37ED)', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('person-fill',28,'#fff')),
+            h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', fontWeight:600}}, '내 이름'), s.nameEdit? null : h('div',{style:{fontSize:'calc(20px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, s.name)),
+            s.nameEdit? null : h('button',{onClick:this.startName, style:{border:'1px solid var(--c-line)', background:'var(--c-card)', borderRadius:12, padding:'10px 14px', fontSize:'calc(14px*var(--fs))', fontWeight:700, color:'var(--c-sub)', display:'flex', alignItems:'center', gap:5}}, this.iconSpan('pencil',18,'var(--c-sub)'), '수정')),
+          s.nameEdit? h('div',{style:{display:'flex', gap:8, marginTop:14}},
+            h('input',{value:s.editName, onChange:(e)=>this.setState({editName:e.target.value}), style:{flex:1, border:'2px solid #0066FF', borderRadius:12, padding:'0 14px', height:54, fontSize:'calc(17px*var(--fs))', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', boxSizing:'border-box'}}),
+            h('button',{onClick:this.saveName, style:{border:'none', background:'#0066FF', color:'#fff', borderRadius:12, padding:'0 18px', fontSize:'calc(15px*var(--fs))', fontWeight:800}}, '저장')) : null)),
+
+        rowCard(h('div',null,
+          h('div',{style:{fontSize:'calc(17px*var(--fs))', fontWeight:800, color:'var(--c-text)', marginBottom:4}}, '글자 크기'),
+          h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginBottom:14}}, '모든 화면에 바로 적용돼요'),
+          h('div',{style:{display:'flex', gap:8}}, fonts.map(f=> h('button',{key:f.v, onClick:()=>this.setFont(f.v), style:{flex:1, padding:'14px 4px', borderRadius:14, border:'2px solid '+(s.fontScale===f.v?'#0066FF':'var(--c-line)'), background:s.fontScale===f.v?'#EAF2FE':'var(--c-card)', color:s.fontScale===f.v?'#0066FF':'var(--c-text)', fontWeight:800, fontSize:'calc(14px*var(--fs))'}}, f.label))))),
+
+        rowCard(h('div',{style:{display:'flex', alignItems:'center', gap:14}},
+          h('div',{style:{width:48, height:48, borderRadius:14, background:'#F2ECFE', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('moon',24,'#5B37ED')),
+          h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(17px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, '고대비 모드'), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, '더 또렷하게 보여요')),
+          toggle(s.highContrast, this.toggleHC))),
+
+        rowCard(h('div',null,
+          h('div',{style:{display:'flex', alignItems:'center', gap:14}},
+            h('div',{style:{width:48, height:48, borderRadius:14, background:'#FFF6E9', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('bell',24,'#FF9200')),
+            h('div',{style:{flex:1}}, h('div',{style:{fontSize:'calc(17px*var(--fs))', fontWeight:800, color:'var(--c-text)'}}, '알림 켜기'), h('div',{style:{fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)', marginTop:2}}, '약·일정 시간에 알려드려요')),
+            toggle(s.notifyOn, this.toggleNotify)),
+          s.notifyOn? h('div',{style:{display:'flex', alignItems:'center', gap:8, marginTop:14, paddingTop:14, borderTop:'1px solid var(--c-line)', fontSize:'calc(13px*var(--fs))', color:'var(--c-sub)'}}, this.iconSpan('clock',18,'var(--c-faint)'), '방해 금지: 밤 9시 ~ 아침 8시는 조용히') : null)),
+
+        h('button',{onClick:this.logout, style:{marginTop:6, border:'1px solid var(--c-line)', background:'var(--c-card)', borderRadius:16, height:58, color:'#E52222', fontSize:'calc(16px*var(--fs))', fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', gap:8}}, this.iconSpan('logout',22,'#E52222'), '로그아웃'))
+    );
+  }
+
+  // ===== CHILD PHONE =====
+  buildChild(){
+    const s=this.state;
+    const statusBar = h('div',{style:{height:52, flexShrink:0, display:'flex', alignItems:'flex-end', justifyContent:'space-between', padding:'0 28px 8px', position:'relative'}},
+      h('span',{style:{fontSize:15, fontWeight:700, color:'var(--c-text)'}}, '9:41'),
+      h('div',{style:{position:'absolute', left:'50%', top:9, transform:'translateX(-50%)', width:108, height:30, background:'#000', borderRadius:999}}),
+      h('div',{style:{display:'flex', alignItems:'center', gap:6}}, h('span',{style:{fontSize:12, fontWeight:700, color:'var(--c-text)'}}, '100%'), h('div',{style:{width:24, height:12, border:'1.5px solid var(--c-text)', borderRadius:3, padding:1.5}}, h('div',{style:{width:'100%', height:'100%', background:'var(--c-text)', borderRadius:1}}))));
+
+    if(!s.childConnected){
+      return h('div',{style:{display:'flex', flexDirection:'column', height:'100%'}}, statusBar,
+        h('div',{style:{flex:1, padding:'24px 28px', display:'flex', flexDirection:'column', justifyContent:'center'}},
+          h('div',{style:{width:70, height:70, borderRadius:20, background:'linear-gradient(135deg,#0098B2,#0066FF)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20}}, this.iconSpan('persons',38,'#fff')),
+          h('div',{style:{fontSize:28, fontWeight:800, color:'var(--c-text)', letterSpacing:'-0.02em', whiteSpace:'pre-line'}}, '어머니와\n연결하기'),
+          h('div',{style:{fontSize:16, color:'var(--c-sub)', marginTop:10, lineHeight:1.5, whiteSpace:'pre-line'}}, '어머니 앱 [가족]에서 만든\n연결 코드를 입력하세요'),
+          h('input',{placeholder:'코드 4자리', style:{marginTop:24, width:'100%', border:'2px solid var(--c-line)', borderRadius:16, padding:'0 18px', height:64, fontSize:24, fontWeight:800, letterSpacing:'0.2em', textAlign:'center', outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', boxSizing:'border-box'}}),
+          h('button',{onClick:this.connectChild, style:{marginTop:16, width:'100%', border:'none', borderRadius:16, height:62, background:'#0066FF', color:'#fff', fontSize:18, fontWeight:800}}, '연결하기')));
+    }
+
+    const pending = s.exchanges.map((e,i)=>({...e,i})).filter(e=>e.status==='대기');
+    return h('div',{style:{display:'flex', flexDirection:'column', height:'100%', background:'var(--c-screen)'}}, statusBar,
+      h('div',{style:{padding:'4px 22px 14px', display:'flex', alignItems:'center', gap:10}},
+        h('div',{style:{flex:1}}, h('div',{style:{fontSize:24, fontWeight:800, color:'var(--c-text)', letterSpacing:'-0.02em'}}, '형진엄마'), h('div',{style:{fontSize:13, color:'#00A63E', fontWeight:700, display:'flex', alignItems:'center', gap:5, marginTop:2}}, h('span',{style:{width:8,height:8,borderRadius:'50%',background:'#00A63E'}}), '연결됨')),
+        h('div',{style:{width:46, height:46, borderRadius:'50%', background:'linear-gradient(135deg,#FF9C63,#FF5E00)', display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('person-fill',24,'#fff'))),
+      h('div',{className:'cy-scroll', style:{flex:1, overflowY:'auto', padding:'0 22px 28px'}},
+        pending.length? pending.map(e=> h('div',{key:e.i, style:{borderRadius:20, background:'linear-gradient(135deg,#5B37ED,#0066FF)', color:'#fff', padding:'18px', marginBottom:16, boxShadow:'0 8px 20px rgba(91,55,237,.24)'}},
+          h('div',{style:{display:'flex', alignItems:'center', gap:7}}, this.iconSpan('coins-fill',20,'#fff'), h('span',{style:{fontSize:14, fontWeight:700, opacity:.95}}, '환전 승인 요청')),
+          h('div',{style:{fontSize:32, fontWeight:800, margin:'8px 0 4px'}}, this.fmt(e.amount)+'원'),
+          h('div',{style:{fontSize:13, opacity:.9}}, '어머니가 '+e.when+' 신청했어요'),
+          h('div',{style:{display:'flex', gap:10, marginTop:16}},
+            h('button',{onClick:()=>this.approveExchange(e.i), style:{flex:1, border:'none', borderRadius:14, height:52, background:'#fff', color:'#0066FF', fontSize:16, fontWeight:800}}, '승인'),
+            h('button',{onClick:()=>this.setState(st=>({exchanges:st.exchanges.map((x,xi)=>xi===e.i?{...x,status:'거절'}:x)})), style:{border:'1px solid rgba(255,255,255,.5)', borderRadius:14, height:52, background:'transparent', color:'#fff', fontSize:16, fontWeight:800, padding:'0 20px'}}, '거절'))))
+          : null,
+        h('div',{style:{fontSize:15, fontWeight:800, color:'var(--c-text)', margin:'4px 0 10px'}}, '어머니 최근 사진'),
+        h('div',{style:{borderRadius:18, overflow:'hidden', border:'1px solid var(--c-line)', marginBottom:20}},
+          h('div',{style:{height:160, background:s.photos[0].grad}}),
+          h('div',{style:{padding:'12px 14px', background:'var(--c-card)'}}, h('div',{style:{fontSize:15, fontWeight:700, color:'var(--c-text)'}}, s.photos[0].cap), h('div',{style:{fontSize:12, color:'var(--c-faint)', marginTop:3}}, s.photos[0].when))),
+        h('div',{style:{fontSize:15, fontWeight:800, color:'var(--c-text)', margin:'4px 0 10px'}}, '소식 보내기'),
+        h('div',{style:{display:'flex', gap:8, marginBottom:16}},
+          h('input',{value:s.childMsg, onChange:(e)=>this.setState({childMsg:e.target.value}), placeholder:'엄마에게 한마디...', style:{flex:1, border:'2px solid var(--c-line)', borderRadius:14, padding:'0 16px', height:54, fontSize:15, outline:'none', fontFamily:'inherit', background:'var(--c-card)', color:'var(--c-text)', boxSizing:'border-box'}}),
+          h('button',{onClick:this.sendChild, style:{border:'none', background:'#0066FF', borderRadius:14, width:54, height:54, display:'flex', alignItems:'center', justifyContent:'center'}}, this.iconSpan('send',24,'#fff'))),
+        s.feed.slice(0,4).map((f,i)=> h('div',{key:i, style:{display:'flex', justifyContent: f.mine?'flex-start':'flex-end', marginBottom:8}},
+          h('div',{style:{maxWidth:'82%', background: f.mine?'var(--c-card)':'#0066FF', color: f.mine?'var(--c-text)':'#fff', border: f.mine?'1px solid var(--c-line)':'none', borderRadius:16, padding:'10px 14px', fontSize:14, lineHeight:1.4}}, f.text))))
+    );
+  }
+
+  renderVals(){
+    const s=this.state;
+    const hc=s.highContrast;
+    const theme = hc
+      ? { '--fs':s.fontScale, '--c-bg':'#FFFFFF', '--c-card':'#FFFFFF', '--c-screen':'#FFFFFF', '--c-text':'#000000', '--c-sub':'#262626', '--c-faint':'#404040', '--c-line':'#111111', '--c-primary':'#0030B0' }
+      : { '--fs':s.fontScale, '--c-bg':'#EDF0F4', '--c-card':'#FFFFFF', '--c-screen':'#F4F6F9', '--c-text':'#16181D', '--c-sub':'#5A5C63', '--c-faint':'#8A8D95', '--c-line':'rgba(112,115,124,0.16)', '--c-primary':'#0066FF' };
+
+    const bezelStyle = { padding:13, borderRadius:58, background:'linear-gradient(160deg,#2a2d33,#0a0b0d)', boxShadow:'0 30px 70px rgba(20,24,40,.34), inset 0 0 2px rgba(255,255,255,.3)' };
+    const screenBase = { ...theme, width:392, height:850, borderRadius:46, overflow:'hidden', background:'var(--c-screen)', position:'relative', display:'flex', flexDirection:'column', fontFamily:'"Pretendard",sans-serif' };
+
+    const scr=s.screen;
+    const appScreens=['home','games','calendar','family','settings','points','exchange','meds'];
+    const tabDef=[
+      {id:'home', label:'홈', icon:'home-fill', screen:'home'},
+      {id:'games', label:'게임', icon:'sparkle-fill', screen:'games'},
+      {id:'calendar', label:'일정', icon:'calendar', screen:'calendar'},
+      {id:'family', label:'가족', icon:'persons', screen:'family'},
+      {id:'settings', label:'설정', icon:'setting', screen:'settings'},
+    ];
+
+    return {
+      pageStyle:{ minHeight:'100vh', width:'100%', background:'radial-gradient(1200px 600px at 50% -10%, #F4F7FB, #E4E8EF)', padding:'44px 24px 80px', display:'flex', flexDirection:'column', alignItems:'center', gap:34, boxSizing:'border-box' },
+      bezelStyle, screenStyle:screenBase, childScreenStyle:{...screenBase},
+
+      isLogin: scr==='login', isSignup: scr==='signup',
+      showHome: scr==='home', showGames: scr==='games', showGame: scr==='game', showResult: scr==='result',
+      showPoints: scr==='points', showExchange: scr==='exchange', showCalendar: scr==='calendar',
+      showMeds: scr==='meds', showFamily: scr==='family', showSettings: scr==='settings',
+      showTab: s.auth && appScreens.includes(scr),
+
+      email:s.email, pw:s.pw, onEmail:(e)=>this.setState({email:e.target.value}), onPw:(e)=>this.setState({pw:e.target.value}),
+      pwType: s.showPw?'text':'password', pwEyeIcon: ICON(s.showPw?'eye-slash':'eye'), toggleShowPw:()=>this.setState(p=>({showPw:!p.showPw})),
+      doLogin:this.doLogin, goSignup:()=>this.go('signup'), goLogin:()=>this.go('login'),
+      suName:s.suName, suEmail:s.suEmail, suPw:s.suPw,
+      onSuName:(e)=>this.setState({suName:e.target.value}), onSuEmail:(e)=>this.setState({suEmail:e.target.value}), onSuPw:(e)=>this.setState({suPw:e.target.value}),
+      doSignup:this.doSignup,
+
+      homeEl: this.buildHome(),
+      games: GAMES.map(g=>({ name:g.name, desc:g.desc, color:g.color, shadow:g.color+'44', iconUrl:ICON(g.icon), open:()=>this.openPicker(g.id) })),
+      gameEl: this.buildGame(), resultEl: this.buildResult(),
+      pointsEl:this.buildPoints(), exchangeEl:this.buildExchange(), calendarEl:this.buildCalendar(),
+      medsEl:this.buildMeds(), familyEl:this.buildFamily(), settingsEl:this.buildSettings(),
+      childEl:this.buildChild(),
+
+      pickerOpen: !!s.picker, closePicker:this.closePicker, stop:(e)=>e.stopPropagation(),
+      pickerName: s.picker? GAMES.find(g=>g.id===s.picker).name : '',
+      diffOptions: ['easy','normal','hard'].map(d=>({ label:DIFF[d].label, short:DIFF[d].short, detail:DIFF[d].detail, mult:'×'+DIFF[d].mult, color:DIFF[d].color, bg:DIFF[d].color+'10', border:DIFF[d].color+'40', start:()=>this.startGame(s.picker,d) })),
+
+      toast:s.toast,
+      tabs: tabDef.map(t=>({ label:t.label, iconUrl:ICON(t.icon), color: s.activeTab===t.id?'var(--c-primary)':'var(--c-faint)', go:()=>this.go(t.screen, t.id) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

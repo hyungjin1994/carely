@@ -1,0 +1,185 @@
+/* Pretendard (KR/Latin) — 시안과 동일하게 CDN 사용. @import 는 최상단. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+@import "tailwindcss";
+
+/* ===========================================================================
+   Wanted Design System 토큰 (colors_and_type.css 발췌) + Carely 테마
+   =========================================================================== */
+:root {
+  /* ── 글자 배율 (런타임, 프로필에서 덮어씀) ── */
+  --fs: 1;
+
+  /* ── 테마 세트: 일반 (시안 renderVals light) ── */
+  --c-bg: #edf0f4;
+  --c-card: #ffffff;
+  --c-screen: #f4f6f9;
+  --c-text: #16181d;
+  --c-sub: #5a5c63;
+  --c-faint: #8a8d95;
+  --c-line: rgba(112, 115, 124, 0.16);
+  --c-primary: #0066ff;
+
+  /* ── 게임/카테고리 액센트 (타일·칩에만) ── */
+  --c-game-quiz: #5b37ed;
+  --c-game-mem: #e846cd;
+  --c-game-word: #0098b2;
+  --c-game-seq: #ff5e00;
+  --c-game-math: #0066ff;
+  --c-game-stroop: #42a800;
+
+  /* ── 상태색 ── */
+  --c-ok: #00a63e;
+  --c-bad: #e52222;
+  --c-warn: #ff9200;
+
+  /* ── 폰트 ── */
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+  /* ── radius (시안: 버튼16 카드24 시트28 칩999) ── */
+  --radius-button: 16px;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --radius-chip: 999px;
+
+  /* ── shadow (아주 옅게) ── */
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.05);
+  --shadow-normal: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.08);
+
+  /* ── motion ── */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ── 고대비 세트 (시안 renderVals hc) ── */
+:root[data-contrast="high"] {
+  --c-bg: #ffffff;
+  --c-card: #ffffff;
+  --c-screen: #ffffff;
+  --c-text: #000000;
+  --c-sub: #262626;
+  --c-faint: #404040;
+  --c-line: #111111;
+  --c-primary: #0030b0;
+}
+
+/* Tailwind v4: --c-* 를 유틸리티로도 노출 (text-text, bg-card 등) */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-card: var(--c-card);
+  --color-screen: var(--c-screen);
+  --color-text: var(--c-text);
+  --color-sub: var(--c-sub);
+  --color-faint: var(--c-faint);
+  --color-line: var(--c-line);
+  --color-primary: var(--c-primary);
+  --color-game-quiz: var(--c-game-quiz);
+  --color-game-mem: var(--c-game-mem);
+  --color-game-word: var(--c-game-word);
+  --color-game-seq: var(--c-game-seq);
+  --color-game-math: var(--c-game-math);
+  --color-game-stroop: var(--c-game-stroop);
+  --color-ok: var(--c-ok);
+  --color-bad: var(--c-bad);
+  --color-warn: var(--c-warn);
+  --font-sans: var(--font-sans);
+}
+
+/* ===========================================================================
+   Base + 시안 keyframes
+   =========================================================================== */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  margin: 0;
+  color: var(--c-text);
+  background: var(--c-bg);
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* 스크롤바 숨김 */
+.cy-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.cy-scroll {
+  scrollbar-width: none;
+}
+
+@keyframes cyflip {
+  from { transform: rotateY(0); }
+  to { transform: rotateY(180deg); }
+}
+@keyframes cypop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes cyglow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.7); }
+}
+@keyframes cyrise {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===========================================================================
+   앱 셸 — 데스크톱에선 폰 프레임처럼 가운데, 모바일에선 전체 화면
+   =========================================================================== */
+.cy-page {
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--c-bg);
+}
+.cy-app {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--c-screen);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+@media (min-width: 480px) {
+  .cy-page {
+    background: radial-gradient(1200px 600px at 50% -10%, #f4f7fb, #e4e8ef);
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cy-app {
+    min-height: min(900px, calc(100dvh - 48px));
+    height: min(900px, calc(100dvh - 48px));
+    border-radius: 32px;
+    box-shadow: 0 30px 70px rgba(20, 24, 40, 0.18);
+    overflow: hidden;
+  }
+}
+
+/* 스크롤 영역 + 하단 탭바 레이아웃 */
+.cy-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
