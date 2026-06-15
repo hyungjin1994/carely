@@ -481,6 +481,8 @@ create policy push_subscriptions_self on public.push_subscriptions
 
 create policy notifications_self on public.notifications
   for select using (user_id = auth.uid());
+create policy notifications_insert_self on public.notifications
+  for insert with check (user_id = auth.uid());
 
 -- ── events: 본인 전체 + 연결 가족 읽기 ──
 create policy events_owner on public.events
