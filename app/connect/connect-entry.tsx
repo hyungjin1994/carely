@@ -17,7 +17,7 @@ export function ConnectEntry() {
       const res = await redeemConnectCode(code);
       if (res.error) showToast(res.error);
       else {
-        showToast("어머니와 연결됐어요");
+        showToast("어르신과 연결됐어요");
         router.refresh();
       }
     });
@@ -29,10 +29,10 @@ export function ConnectEntry() {
         <Icon name="persons" size={38} color="#fff" />
       </div>
       <div style={{ fontSize: "calc(28px*var(--fs))", fontWeight: 800, color: "var(--c-text)", letterSpacing: "-0.02em", whiteSpace: "pre-line" }}>
-        {"어머니와\n연결하기"}
+        {"어르신과\n연결하기"}
       </div>
       <div style={{ fontSize: "calc(16px*var(--fs))", color: "var(--c-sub)", marginTop: 10, lineHeight: 1.5, whiteSpace: "pre-line" }}>
-        {"어머니 앱 [가족]에서 만든\n연결 코드를 입력하세요"}
+        {"어르신 앱 [가족]에서 만든\n연결 코드를 입력하세요"}
       </div>
       <input
         value={code}

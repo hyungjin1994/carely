@@ -23,11 +23,11 @@ create policy profiles_update_self on public.profiles
 
 -- ── family_links: 당사자만 읽기 (생성/수정은 RPC가 담당) ──
 create policy family_links_select on public.family_links
-  for select using (mom_id = auth.uid() or child_id = auth.uid());
+  for select using (senior_id = auth.uid() or manager_id = auth.uid());
 
 -- ── connect_codes: mom 본인 관리 (사용은 RPC) ──
 create policy connect_codes_owner on public.connect_codes
-  for all using (mom_id = auth.uid()) with check (mom_id = auth.uid());
+  for all using (senior_id = auth.uid()) with check (senior_id = auth.uid());
 
 -- ── 본인 스코프 테이블 (user_id = auth.uid()) ──
 create policy point_ledger_self on public.point_ledger
@@ -56,6 +56,9 @@ create policy events_owner on public.events
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy events_family_read on public.events
   for select using (public.is_linked(auth.uid(), user_id));
+create policy events_family_manage on public.events
+  for all using (public.is_linked(auth.uid(), user_id))
+  with check (public.is_linked(auth.uid(), user_id));
 
 -- ── photos: 본인 전체 + 연결 가족 읽기 ──
 create policy photos_owner on public.photos
@@ -77,7 +80,7 @@ create policy messages_member_select on public.messages
     exists (
       select 1 from public.family_links fl
       where fl.id = messages.family_id
-        and (fl.mom_id = auth.uid() or fl.child_id = auth.uid())
+        and (fl.senior_id = auth.uid() or fl.manager_id = auth.uid())
     )
   );
 create policy messages_member_insert on public.messages
@@ -86,6 +89,25 @@ create policy messages_member_insert on public.messages
     and exists (
       select 1 from public.family_links fl
       where fl.id = messages.family_id
-        and (fl.mom_id = auth.uid() or fl.child_id = auth.uid())
+        and (fl.senior_id = auth.uid() or fl.manager_id = auth.uid())
     )
   );
+
+-- ── 가족(관리자) 모니터링 읽기 — 연결된 어르신의 포인트·약 데이터 ──
+create policy point_ledger_family_read on public.point_ledger
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy daily_points_family_read on public.daily_points
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy game_scores_family_read on public.game_scores
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy medications_family_read on public.medications
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy med_doses_family_read on public.med_doses
+  for select using (public.is_linked(auth.uid(), user_id));
+
+-- ── measurements: 본인 입력/조회 + 연결 가족 읽기 ──
+alter table public.measurements enable row level security;
+create policy measurements_self on public.measurements
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy measurements_family_read on public.measurements
+  for select using (public.is_linked(auth.uid(), user_id));

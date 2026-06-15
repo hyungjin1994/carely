@@ -34,5 +34,6 @@ export async function submitGameResult(input: {
 
   revalidatePath("/points");
   revalidatePath("/home");
+  revalidatePath("/games");
   return { awarded: (data as number) ?? 0 };
 }

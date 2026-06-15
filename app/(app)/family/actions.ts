@@ -37,6 +37,26 @@ export async function uploadPhoto(formData: FormData): Promise<FamilyActionState
   return { ok: true };
 }
 
+/** 어르신 → 관리자 메시지 전송. familyId = family_links.id. RLS 가 멤버십 검증. */
+export async function sendFamilyMessage(familyId: string, text: string): Promise<FamilyActionState> {
+  const clean = text.trim();
+  if (!clean) return { error: "내용을 적어주세요" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요해요" };
+
+  const { error } = await supabase
+    .from("messages")
+    .insert({ family_id: familyId, from_id: user.id, text: clean });
+  if (error) return { error: "전송에 실패했어요" };
+
+  revalidatePath("/family");
+  return { ok: true };
+}
+
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 헷갈리는 글자 제외
 
 function randomCode(len = 4): string {
@@ -58,7 +78,7 @@ export async function rotateConnectCode(): Promise<FamilyActionState> {
     const code = randomCode();
     const { error } = await supabase
       .from("connect_codes")
-      .insert({ code, mom_id: user.id, expires_at: expires });
+      .insert({ code, senior_id: user.id, expires_at: expires });
     if (!error) {
       revalidatePath("/family");
       return { ok: true, code };

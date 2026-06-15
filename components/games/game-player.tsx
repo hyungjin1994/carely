@@ -14,7 +14,12 @@ import { showToast } from "@/components/common/toast";
 
 type ResultData = { correct: number; total: number; awarded: number };
 
-export function GamePlayer({ gameId, difficulty }: { gameId: GameId; difficulty: Difficulty }) {
+const ORDER: Difficulty[] = ["easy", "normal", "hard"];
+// 다음 단계 도전을 권하는 기준: 정답률 70% 이상.
+const LEVEL_UP_RATIO = 0.7;
+
+export function GamePlayer({ gameId, difficulty: initialDiff }: { gameId: GameId; difficulty: Difficulty }) {
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialDiff);
   const [phase, setPhase] = useState<"play" | "result">("play");
   const [result, setResult] = useState<ResultData | null>(null);
   const [playKey, setPlayKey] = useState(0);
@@ -42,7 +47,19 @@ export function GamePlayer({ gameId, difficulty }: { gameId: GameId; difficulty:
     setPhase("play");
   };
 
+  const nextLevel = () => {
+    const idx = ORDER.indexOf(difficulty);
+    setDifficulty(ORDER[Math.min(idx + 1, ORDER.length - 1)]);
+    setResult(null);
+    setPlayKey((k) => k + 1);
+    setPhase("play");
+  };
+
   if (phase === "result" && result) {
+    const idx = ORDER.indexOf(difficulty);
+    const ratio = result.total > 0 ? result.correct / result.total : 0;
+    const canLevelUp = ratio >= LEVEL_UP_RATIO && idx < ORDER.length - 1;
+    const next = canLevelUp ? ORDER[idx + 1] : null;
     return (
       <ResultScreen
         gameId={gameId}
@@ -50,7 +67,12 @@ export function GamePlayer({ gameId, difficulty }: { gameId: GameId; difficulty:
         total={result.total}
         awarded={result.awarded}
         mult={DIFF[difficulty].mult}
+        difficultyLabel={DIFF[difficulty].label}
         onReplay={replay}
+        onNextLevel={canLevelUp ? nextLevel : undefined}
+        nextLabel={next ? DIFF[next].label : undefined}
+        nextMult={next ? DIFF[next].mult : undefined}
+        atTop={idx === ORDER.length - 1}
       />
     );
   }

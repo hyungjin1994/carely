@@ -17,7 +17,7 @@ export default async function CalendarPage() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, date, type, title, time, done")
+    .select("id, date, type, title, time, place, with_whom, memo, done")
     .gte("date", monthStart)
     .lte("date", monthEnd)
     .order("time");

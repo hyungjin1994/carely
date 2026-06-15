@@ -35,7 +35,7 @@ export default async function ExchangePage() {
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 14, padding: "14px 16px", background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", lineHeight: 1.5 }}>
         <Icon name="circle-info" size={20} color="var(--c-faint)" />
-        <span>신청하면 자녀에게 알림이 가요. 자녀가 승인하면 실제 송금은 가족이 해드려요.</span>
+        <span>신청하면 관리자에게 알림이 가요. 관리자가 입금하고 [교환 완료]를 누르면 포인트가 차감돼요.</span>
       </div>
 
       <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>신청 내역</div>

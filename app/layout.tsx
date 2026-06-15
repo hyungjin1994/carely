@@ -4,7 +4,7 @@ import { ServiceWorkerRegister } from "@/components/common/sw-register";
 
 export const metadata: Metadata = {
   title: "Carely",
-  description: "엄마와 자녀가 함께 건강을 챙기는 앱",
+  description: "부모님·조부모님과 가족이 함께 건강을 챙기는 앱",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Carely" },
 };

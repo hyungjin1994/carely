@@ -26,7 +26,7 @@ export function ConnectCodeCard({ initialCode }: { initialCode: string | null })
         <Icon name="persons" size={24} color="#0066FF" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "calc(14px*var(--fs))", color: "var(--c-sub)", fontWeight: 600 }}>자녀 연결 코드</div>
+        <div style={{ fontSize: "calc(14px*var(--fs))", color: "var(--c-sub)", fontWeight: 600 }}>관리자 연결 코드</div>
         <div style={{ fontSize: "calc(26px*var(--fs))", fontWeight: 800, color: "var(--c-text)", letterSpacing: "0.1em" }}>
           {code ?? "—"}
         </div>

@@ -9,11 +9,11 @@ security definer
 set search_path = public
 as $$
 declare
-  v_role text := coalesce(new.raw_user_meta_data->>'role', 'mom');
+  v_role text := coalesce(new.raw_user_meta_data->>'role', 'parent');
   v_name text := new.raw_user_meta_data->>'name';
 begin
-  if v_role not in ('mom','child') then
-    v_role := 'mom';
+  if v_role not in ('parent','grandparent','manager') then
+    v_role := 'parent';
   end if;
 
   insert into public.profiles (id, name, role)
@@ -46,8 +46,8 @@ as $$
   select exists (
     select 1 from public.family_links fl
     where fl.status = 'active'
-      and ((fl.mom_id = a and fl.child_id = b)
-        or (fl.mom_id = b and fl.child_id = a))
+      and ((fl.senior_id = a and fl.manager_id = b)
+        or (fl.senior_id = b and fl.manager_id = a))
   );
 $$;
 
@@ -125,32 +125,32 @@ set search_path = public
 as $$
 declare
   uid uuid := auth.uid();
-  v_mom uuid;
+  v_senior uuid;
   v_link uuid;
 begin
   if uid is null then
     raise exception 'unauthenticated';
   end if;
 
-  select mom_id into v_mom from public.connect_codes
+  select senior_id into v_senior from public.connect_codes
     where code = upper(p_code) and used_by is null and expires_at > now()
     for update;
 
-  if v_mom is null then
+  if v_senior is null then
     raise exception 'invalid_code';
   end if;
-  if v_mom = uid then
+  if v_senior = uid then
     raise exception 'cannot_link_self';
   end if;
 
-  insert into public.family_links(mom_id, child_id, status)
-  values (v_mom, uid, 'active')
-  on conflict (mom_id, child_id) do update set status = 'active'
+  insert into public.family_links(senior_id, manager_id, status)
+  values (v_senior, uid, 'active')
+  on conflict (senior_id, manager_id) do update set status = 'active'
   returning id into v_link;
 
   update public.connect_codes set used_by = uid where code = upper(p_code);
 
-  return v_mom;
+  return v_senior;
 end;
 $$;
 
@@ -177,5 +177,39 @@ begin
   set status = case when p_approve then 'approved' else 'rejected' end,
       approved_by = uid
   where id = p_id and status = 'pending';
+end;
+$$;
+
+-- ── 환전 완료 (관리자, status=done + 어르신 포인트 차감) ──
+create or replace function public.complete_exchange(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  v_owner uuid;
+  v_amount integer;
+  v_status text;
+begin
+  select user_id, amount, status into v_owner, v_amount, v_status
+    from public.exchange_requests where id = p_id for update;
+  if v_owner is null then
+    raise exception 'not_found';
+  end if;
+  if not public.is_linked(uid, v_owner) then
+    raise exception 'forbidden';
+  end if;
+  if v_status <> 'pending' then
+    raise exception 'not_pending';
+  end if;
+
+  update public.exchange_requests
+    set status = 'done', approved_by = uid
+    where id = p_id;
+
+  insert into public.point_ledger(user_id, delta, reason, game_id)
+    values (v_owner, -v_amount, 'exchange', null);
 end;
 $$;

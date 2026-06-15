@@ -16,7 +16,7 @@ export default async function PlayPage({
   if (!GAME_IDS.includes(id as GameId)) notFound();
   const difficulty: Difficulty = DIFFS.includes(diff as Difficulty)
     ? (diff as Difficulty)
-    : "normal";
+    : "easy";
 
   return <GamePlayer gameId={id as GameId} difficulty={difficulty} />;
 }

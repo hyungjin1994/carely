@@ -5,7 +5,7 @@
 create table public.profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
   name          text,
-  role          text not null default 'mom' check (role in ('mom','child')),
+  role          text not null default 'parent' check (role in ('parent','grandparent','manager')),
   font_scale    numeric not null default 1.0,
   high_contrast boolean not null default false,
   notify_on     boolean not null default true,
@@ -15,31 +15,31 @@ create table public.profiles (
 -- ── 가족 연결 ──
 create table public.family_links (
   id         uuid primary key default gen_random_uuid(),
-  mom_id     uuid not null references public.profiles(id) on delete cascade,
-  child_id   uuid not null references public.profiles(id) on delete cascade,
+  senior_id  uuid not null references public.profiles(id) on delete cascade,
+  manager_id uuid not null references public.profiles(id) on delete cascade,
   status     text not null default 'active' check (status in ('active','paused')),
   created_at timestamptz not null default now(),
-  unique (mom_id, child_id)
+  unique (senior_id, manager_id)
 );
-create index family_links_mom_idx on public.family_links(mom_id);
-create index family_links_child_idx on public.family_links(child_id);
+create index family_links_senior_idx on public.family_links(senior_id);
+create index family_links_manager_idx on public.family_links(manager_id);
 
 -- ── 연결 코드 (짧은 코드, 만료/단일사용) ──
 create table public.connect_codes (
   code       text primary key,
-  mom_id     uuid not null references public.profiles(id) on delete cascade,
+  senior_id  uuid not null references public.profiles(id) on delete cascade,
   expires_at timestamptz not null,
   used_by    uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
-create index connect_codes_mom_idx on public.connect_codes(mom_id);
+create index connect_codes_senior_idx on public.connect_codes(senior_id);
 
 -- ── 포인트 적립 내역 ──
 create table public.point_ledger (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references public.profiles(id) on delete cascade,
   delta      integer not null,
-  reason     text not null check (reason in ('game','photo')),
+  reason     text not null check (reason in ('game','photo','exchange')),
   game_id    text,
   created_at timestamptz not null default now()
 );
@@ -80,13 +80,16 @@ create index exchange_requests_user_idx on public.exchange_requests(user_id, cre
 
 -- ── 일정 ──
 create table public.events (
-  id      uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  date    date not null,
-  type    text not null check (type in ('약','병원','운동','가족','기타')),
-  title   text not null,
-  time    text,                 -- "HH:MM"
-  done    boolean not null default false
+  id        uuid primary key default gen_random_uuid(),
+  user_id   uuid not null references public.profiles(id) on delete cascade,
+  date      date not null,
+  type      text not null check (type in ('약','병원','운동','가족','여행','모임','생일','기타')),
+  title     text not null,
+  time      text,                 -- "HH:MM"
+  place     text,                 -- 어디서
+  with_whom text,                 -- 누구와
+  memo      text,
+  done      boolean not null default false
 );
 create index events_user_date_idx on public.events(user_id, date);
 
@@ -131,6 +134,21 @@ create table public.messages (
   created_at timestamptz not null default now()
 );
 create index messages_family_idx on public.messages(family_id, created_at desc);
+
+-- ── 측정 (건강수치) ──
+-- 매핑: glucose_fasting/glucose_post → v1=mg/dL · bp → v1=수축/v2=이완/v3=맥박 · weight → v1=kg
+create table public.measurements (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  kind        text not null check (kind in ('glucose_fasting','glucose_post','bp','weight')),
+  v1          numeric,
+  v2          numeric,
+  v3          numeric,
+  memo        text,
+  measured_at timestamptz not null default now(),
+  created_at  timestamptz not null default now()
+);
+create index measurements_user_idx on public.measurements(user_id, measured_at desc);
 
 -- ── 웹 푸시 구독 ──
 create table public.push_subscriptions (

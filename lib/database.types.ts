@@ -1,8 +1,9 @@
 // 수기 작성한 Supabase 타입. 실제 프로젝트 링크 후 `npm run gen:types` 로 재생성 권장.
 
-export type Role = "mom" | "child";
+export type Role = "parent" | "grandparent" | "manager";
 export type ExchangeStatus = "pending" | "approved" | "rejected" | "done";
-export type EventType = "약" | "병원" | "운동" | "가족" | "기타";
+export type EventType = "약" | "병원" | "운동" | "가족" | "여행" | "모임" | "생일" | "기타";
+export type MeasurementKind = "glucose_fasting" | "glucose_post" | "bp" | "weight";
 
 export type Profile = {
   id: string;
@@ -16,15 +17,15 @@ export type Profile = {
 
 export type FamilyLink = {
   id: string;
-  mom_id: string;
-  child_id: string;
+  senior_id: string;
+  manager_id: string;
   status: "active" | "paused";
   created_at: string;
 };
 
 export type ConnectCode = {
   code: string;
-  mom_id: string;
+  senior_id: string;
   expires_at: string;
   used_by: string | null;
   created_at: string;
@@ -34,7 +35,7 @@ export type PointLedger = {
   id: string;
   user_id: string;
   delta: number;
-  reason: "game" | "photo";
+  reason: "game" | "photo" | "exchange";
   game_id: string | null;
   created_at: string;
 };
@@ -68,6 +69,9 @@ export type EventRow = {
   type: EventType;
   title: string;
   time: string | null;
+  place: string | null;
+  with_whom: string | null;
+  memo: string | null;
   done: boolean;
 };
 
@@ -102,6 +106,18 @@ export type Message = {
   from_id: string;
   text: string;
   photo_id: string | null;
+  created_at: string;
+};
+
+export type Measurement = {
+  id: string;
+  user_id: string;
+  kind: MeasurementKind;
+  v1: number | null;
+  v2: number | null;
+  v3: number | null;
+  memo: string | null;
+  measured_at: string;
   created_at: string;
 };
 
@@ -146,6 +162,7 @@ export type Database = {
       med_doses: Table<MedDose>;
       photos: Table<Photo>;
       messages: Table<Message>;
+      measurements: Table<Measurement>;
       push_subscriptions: Table<PushSubscription>;
       notifications: Table<Notification>;
     };
@@ -160,6 +177,7 @@ export type Database = {
       };
       redeem_connect_code: { Args: { p_code: string }; Returns: string };
       decide_exchange: { Args: { p_id: string; p_approve: boolean }; Returns: undefined };
+      complete_exchange: { Args: { p_id: string }; Returns: undefined };
       is_linked: { Args: { a: string; b: string }; Returns: boolean };
     };
   };

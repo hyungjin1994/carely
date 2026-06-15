@@ -6,7 +6,7 @@ import { fmt } from "@/lib/utils";
 import { showToast } from "@/components/common/toast";
 import { requestExchange } from "./actions";
 
-const OPTS = [5000, 10000, 30000, 50000];
+const OPTS = [10000, 30000, 50000];
 
 export function ExchangeForm() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export function ExchangeForm() {
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
         {OPTS.map((o) => {
           const on = amount === o;
           return (

@@ -70,8 +70,8 @@ export function LoginForm({ emailCheck }: { emailCheck: boolean }) {
 
         <div style={{ marginTop: 30, display: "flex", flexDirection: "column", gap: 14 }}>
           <label style={inputWrap}>
-            <Icon name="mail" size={24} color="var(--c-faint)" />
-            <input name="email" type="email" autoComplete="email" placeholder="이메일" style={inputStyle} />
+            <Icon name="person" size={24} color="var(--c-faint)" />
+            <input name="loginId" type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="아이디" style={inputStyle} />
           </label>
           <label style={inputWrap}>
             <Icon name="lock" size={24} color="var(--c-faint)" />

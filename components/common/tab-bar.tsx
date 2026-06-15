@@ -7,6 +7,7 @@ import { Icon } from "@/components/common/icon";
 const TABS = [
   { label: "홈", icon: "home-fill", href: "/home" },
   { label: "게임", icon: "sparkle-fill", href: "/games" },
+  { label: "측정", icon: "heart-fill", href: "/measure" },
   { label: "일정", icon: "calendar", href: "/calendar" },
   { label: "가족", icon: "persons", href: "/family" },
   { label: "설정", icon: "setting", href: "/settings" },

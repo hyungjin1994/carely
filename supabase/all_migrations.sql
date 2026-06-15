@@ -11,7 +11,7 @@
 create table public.profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
   name          text,
-  role          text not null default 'mom' check (role in ('mom','child')),
+  role          text not null default 'parent' check (role in ('parent','grandparent','manager')),
   font_scale    numeric not null default 1.0,
   high_contrast boolean not null default false,
   notify_on     boolean not null default true,
@@ -21,31 +21,31 @@ create table public.profiles (
 -- ── 가족 연결 ──
 create table public.family_links (
   id         uuid primary key default gen_random_uuid(),
-  mom_id     uuid not null references public.profiles(id) on delete cascade,
-  child_id   uuid not null references public.profiles(id) on delete cascade,
+  senior_id  uuid not null references public.profiles(id) on delete cascade,
+  manager_id uuid not null references public.profiles(id) on delete cascade,
   status     text not null default 'active' check (status in ('active','paused')),
   created_at timestamptz not null default now(),
-  unique (mom_id, child_id)
+  unique (senior_id, manager_id)
 );
-create index family_links_mom_idx on public.family_links(mom_id);
-create index family_links_child_idx on public.family_links(child_id);
+create index family_links_senior_idx on public.family_links(senior_id);
+create index family_links_manager_idx on public.family_links(manager_id);
 
 -- ── 연결 코드 (짧은 코드, 만료/단일사용) ──
 create table public.connect_codes (
   code       text primary key,
-  mom_id     uuid not null references public.profiles(id) on delete cascade,
+  senior_id  uuid not null references public.profiles(id) on delete cascade,
   expires_at timestamptz not null,
   used_by    uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
-create index connect_codes_mom_idx on public.connect_codes(mom_id);
+create index connect_codes_senior_idx on public.connect_codes(senior_id);
 
 -- ── 포인트 적립 내역 ──
 create table public.point_ledger (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references public.profiles(id) on delete cascade,
   delta      integer not null,
-  reason     text not null check (reason in ('game','photo')),
+  reason     text not null check (reason in ('game','photo','exchange')),
   game_id    text,
   created_at timestamptz not null default now()
 );
@@ -86,13 +86,16 @@ create index exchange_requests_user_idx on public.exchange_requests(user_id, cre
 
 -- ── 일정 ──
 create table public.events (
-  id      uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
-  date    date not null,
-  type    text not null check (type in ('약','병원','운동','가족','기타')),
-  title   text not null,
-  time    text,                 -- "HH:MM"
-  done    boolean not null default false
+  id        uuid primary key default gen_random_uuid(),
+  user_id   uuid not null references public.profiles(id) on delete cascade,
+  date      date not null,
+  type      text not null check (type in ('약','병원','운동','가족','여행','모임','생일','기타')),
+  title     text not null,
+  time      text,                 -- "HH:MM"
+  place     text,                 -- 어디서
+  with_whom text,                 -- 누구와
+  memo      text,
+  done      boolean not null default false
 );
 create index events_user_date_idx on public.events(user_id, date);
 
@@ -138,6 +141,21 @@ create table public.messages (
 );
 create index messages_family_idx on public.messages(family_id, created_at desc);
 
+-- ── 측정 (건강수치) ──
+-- 매핑: glucose_fasting/glucose_post → v1=mg/dL · bp → v1=수축/v2=이완/v3=맥박 · weight → v1=kg
+create table public.measurements (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references public.profiles(id) on delete cascade,
+  kind        text not null check (kind in ('glucose_fasting','glucose_post','bp','weight')),
+  v1          numeric,
+  v2          numeric,
+  v3          numeric,
+  memo        text,
+  measured_at timestamptz not null default now(),
+  created_at  timestamptz not null default now()
+);
+create index measurements_user_idx on public.measurements(user_id, measured_at desc);
+
 -- ── 웹 푸시 구독 ──
 create table public.push_subscriptions (
   id         uuid primary key default gen_random_uuid(),
@@ -178,11 +196,11 @@ security definer
 set search_path = public
 as $$
 declare
-  v_role text := coalesce(new.raw_user_meta_data->>'role', 'mom');
+  v_role text := coalesce(new.raw_user_meta_data->>'role', 'parent');
   v_name text := new.raw_user_meta_data->>'name';
 begin
-  if v_role not in ('mom','child') then
-    v_role := 'mom';
+  if v_role not in ('parent','grandparent','manager') then
+    v_role := 'parent';
   end if;
 
   insert into public.profiles (id, name, role)
@@ -215,8 +233,8 @@ as $$
   select exists (
     select 1 from public.family_links fl
     where fl.status = 'active'
-      and ((fl.mom_id = a and fl.child_id = b)
-        or (fl.mom_id = b and fl.child_id = a))
+      and ((fl.senior_id = a and fl.manager_id = b)
+        or (fl.senior_id = b and fl.manager_id = a))
   );
 $$;
 
@@ -259,7 +277,8 @@ begin
 end;
 $$;
 
--- ── 게임 결과 제출 (서버 권위 채점 + 적립 + 기록) ──
+-- ── 게임 결과 제출 (서버 권위 채점 + 게임별/일일 한도 클램프 + 적립 + 기록) ──
+-- per_game_cap 은 lib/games/config.ts 의 PER_GAME_DAILY_CAP 과 동일하게 유지 (마이그레이션 0005).
 create or replace function public.submit_game_result(
   p_game_id text, p_difficulty text, p_correct integer, p_total integer, p_points integer
 )
@@ -270,13 +289,36 @@ set search_path = public
 as $$
 declare
   uid uuid := auth.uid();
+  d date := (now() at time zone 'Asia/Seoul')::date;
+  per_game_cap constant integer := 200;   -- = lib/games/config.ts PER_GAME_DAILY_CAP
+  game_total integer;
+  capped integer;
   awarded integer;
 begin
   if uid is null then
     raise exception 'unauthenticated';
   end if;
 
-  awarded := public.award_points(uid, greatest(p_points, 0), 'game', p_game_id);
+  -- 일일 행 확보 후 잠금: 같은 사용자의 동시 적립을 직렬화한다.
+  -- (award_points 도 같은 행을 잠그므로, 여기서 먼저 잠가야 game_total 합산이 race-free)
+  insert into public.daily_points(user_id, date, total)
+  values (uid, d, 0)
+  on conflict (user_id, date) do nothing;
+
+  perform 1 from public.daily_points
+    where user_id = uid and date = d
+    for update;
+
+  -- 오늘(KST) 이 게임으로 이미 적립한 포인트 합 (game_scores.points 는 실제 적립값)
+  select coalesce(sum(points), 0) into game_total
+    from public.game_scores
+    where user_id = uid
+      and game_id = p_game_id
+      and (created_at at time zone 'Asia/Seoul')::date = d;
+
+  -- 게임별 한도로 먼저 클램프 → 그 다음 일일 한도(award_points)로 클램프
+  capped := least(greatest(p_points, 0), greatest(0, per_game_cap - game_total));
+  awarded := public.award_points(uid, capped, 'game', p_game_id);
 
   insert into public.game_scores(user_id, game_id, difficulty, correct, total, points)
   values (uid, p_game_id, p_difficulty, greatest(p_correct,0), greatest(p_total,0), awarded);
@@ -294,32 +336,32 @@ set search_path = public
 as $$
 declare
   uid uuid := auth.uid();
-  v_mom uuid;
+  v_senior uuid;
   v_link uuid;
 begin
   if uid is null then
     raise exception 'unauthenticated';
   end if;
 
-  select mom_id into v_mom from public.connect_codes
+  select senior_id into v_senior from public.connect_codes
     where code = upper(p_code) and used_by is null and expires_at > now()
     for update;
 
-  if v_mom is null then
+  if v_senior is null then
     raise exception 'invalid_code';
   end if;
-  if v_mom = uid then
+  if v_senior = uid then
     raise exception 'cannot_link_self';
   end if;
 
-  insert into public.family_links(mom_id, child_id, status)
-  values (v_mom, uid, 'active')
-  on conflict (mom_id, child_id) do update set status = 'active'
+  insert into public.family_links(senior_id, manager_id, status)
+  values (v_senior, uid, 'active')
+  on conflict (senior_id, manager_id) do update set status = 'active'
   returning id into v_link;
 
   update public.connect_codes set used_by = uid where code = upper(p_code);
 
-  return v_mom;
+  return v_senior;
 end;
 $$;
 
@@ -346,6 +388,40 @@ begin
   set status = case when p_approve then 'approved' else 'rejected' end,
       approved_by = uid
   where id = p_id and status = 'pending';
+end;
+$$;
+
+-- ── 환전 완료 (관리자, status=done + 어르신 포인트 차감) ──
+create or replace function public.complete_exchange(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  v_owner uuid;
+  v_amount integer;
+  v_status text;
+begin
+  select user_id, amount, status into v_owner, v_amount, v_status
+    from public.exchange_requests where id = p_id for update;
+  if v_owner is null then
+    raise exception 'not_found';
+  end if;
+  if not public.is_linked(uid, v_owner) then
+    raise exception 'forbidden';
+  end if;
+  if v_status <> 'pending' then
+    raise exception 'not_pending';
+  end if;
+
+  update public.exchange_requests
+    set status = 'done', approved_by = uid
+    where id = p_id;
+
+  insert into public.point_ledger(user_id, delta, reason, game_id)
+    values (v_owner, -v_amount, 'exchange', null);
 end;
 $$;
 
@@ -378,11 +454,11 @@ create policy profiles_update_self on public.profiles
 
 -- ── family_links: 당사자만 읽기 (생성/수정은 RPC가 담당) ──
 create policy family_links_select on public.family_links
-  for select using (mom_id = auth.uid() or child_id = auth.uid());
+  for select using (senior_id = auth.uid() or manager_id = auth.uid());
 
 -- ── connect_codes: mom 본인 관리 (사용은 RPC) ──
 create policy connect_codes_owner on public.connect_codes
-  for all using (mom_id = auth.uid()) with check (mom_id = auth.uid());
+  for all using (senior_id = auth.uid()) with check (senior_id = auth.uid());
 
 -- ── 본인 스코프 테이블 (user_id = auth.uid()) ──
 create policy point_ledger_self on public.point_ledger
@@ -411,6 +487,9 @@ create policy events_owner on public.events
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy events_family_read on public.events
   for select using (public.is_linked(auth.uid(), user_id));
+create policy events_family_manage on public.events
+  for all using (public.is_linked(auth.uid(), user_id))
+  with check (public.is_linked(auth.uid(), user_id));
 
 -- ── photos: 본인 전체 + 연결 가족 읽기 ──
 create policy photos_owner on public.photos
@@ -432,7 +511,7 @@ create policy messages_member_select on public.messages
     exists (
       select 1 from public.family_links fl
       where fl.id = messages.family_id
-        and (fl.mom_id = auth.uid() or fl.child_id = auth.uid())
+        and (fl.senior_id = auth.uid() or fl.manager_id = auth.uid())
     )
   );
 create policy messages_member_insert on public.messages
@@ -441,9 +520,28 @@ create policy messages_member_insert on public.messages
     and exists (
       select 1 from public.family_links fl
       where fl.id = messages.family_id
-        and (fl.mom_id = auth.uid() or fl.child_id = auth.uid())
+        and (fl.senior_id = auth.uid() or fl.manager_id = auth.uid())
     )
   );
+
+-- ── 가족(관리자) 모니터링 읽기 — 연결된 어르신의 포인트·약 데이터 ──
+create policy point_ledger_family_read on public.point_ledger
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy daily_points_family_read on public.daily_points
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy game_scores_family_read on public.game_scores
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy medications_family_read on public.medications
+  for select using (public.is_linked(auth.uid(), user_id));
+create policy med_doses_family_read on public.med_doses
+  for select using (public.is_linked(auth.uid(), user_id));
+
+-- ── measurements: 본인 입력/조회 + 연결 가족 읽기 ──
+alter table public.measurements enable row level security;
+create policy measurements_self on public.measurements
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy measurements_family_read on public.measurements
+  for select using (public.is_linked(auth.uid(), user_id));
 
 
 -- ============================================================
