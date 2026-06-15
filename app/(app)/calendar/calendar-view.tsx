@@ -206,16 +206,29 @@ export function CalendarView({
           {dayEvents.map((e) => {
             const sub = [e.time, e.place, e.with_whom ? `${e.with_whom}` : null].filter(Boolean).join(" · ");
             return (
-              <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, padding: "14px 16px" }}>
-                <span style={{ fontSize: "calc(12px*var(--fs))", fontWeight: 800, color: "#fff", background: TYPE_COLOR[e.type] ?? "#5B37ED", padding: "5px 10px", borderRadius: 9, flexShrink: 0 }}>{e.type}</span>
-                <button onClick={() => openEdit(e)} style={{ flex: 1, border: "none", background: "transparent", textAlign: "left", padding: 0 }}>
-                  <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 700, color: "var(--c-text)", textDecoration: e.done ? "line-through" : "none", opacity: e.done ? 0.5 : 1 }}>{e.title}</div>
-                  {sub && <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>{sub}</div>}
-                  {e.memo && <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-faint)", marginTop: 2 }}>{e.memo}</div>}
-                </button>
-                <button onClick={() => toggle(e.id, e.done)} style={{ border: "none", background: "transparent", padding: 4 }}>
-                  <Icon name={e.done ? "circle-check-fill" : "check-thick"} size={28} color={e.done ? "#00A63E" : "var(--c-line)"} />
-                </button>
+              <div key={e.id} style={{ display: "flex", flexDirection: "column", gap: 10, background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: "calc(12px*var(--fs))", fontWeight: 800, color: "#fff", background: TYPE_COLOR[e.type] ?? "#5B37ED", padding: "5px 10px", borderRadius: 9, flexShrink: 0 }}>{e.type}</span>
+                  <button onClick={() => openEdit(e)} style={{ flex: 1, border: "none", background: "transparent", textAlign: "left", padding: 0 }}>
+                    <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 700, color: "var(--c-text)", textDecoration: e.done ? "line-through" : "none", opacity: e.done ? 0.5 : 1 }}>{e.title}</div>
+                    {sub && <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>{sub}</div>}
+                    {e.memo && <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-faint)", marginTop: 2 }}>{e.memo}</div>}
+                  </button>
+                  <button onClick={() => toggle(e.id, e.done)} style={{ border: "none", background: "transparent", padding: 4 }}>
+                    <Icon name={e.done ? "circle-check-fill" : "check-thick"} size={28} color={e.done ? "#00A63E" : "var(--c-line)"} />
+                  </button>
+                </div>
+                {e.place && (
+                  <a
+                    href={`https://map.naver.com/p/search/${encodeURIComponent(e.place)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "flex-start", textDecoration: "none", border: "1px solid #03C75A", color: "#03C75A", background: "#03C75A14", borderRadius: 12, padding: "9px 14px", fontSize: "calc(14px*var(--fs))", fontWeight: 800 }}
+                  >
+                    <Icon name="location" size={18} color="#03C75A" />
+                    가는 길 (네이버지도)
+                  </a>
+                )}
               </div>
             );
           })}
