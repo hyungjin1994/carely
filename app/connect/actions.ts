@@ -22,9 +22,10 @@ export async function redeemConnectCode(code: string): Promise<ConnectState> {
   return { ok: true };
 }
 
-export async function approveExchange(id: string): Promise<ConnectState> {
+/** 환전 완료 — 입금을 마친 뒤 누른다. 상태 done + 어르신 포인트 차감(RPC). */
+export async function completeExchange(id: string): Promise<ConnectState> {
   const supabase = await createClient();
-  const { error } = await supabase.rpc("decide_exchange", { p_id: id, p_approve: true });
+  const { error } = await supabase.rpc("complete_exchange", { p_id: id });
   if (error) return { error: "처리에 실패했어요" };
   revalidatePath("/connect");
   return { ok: true };
@@ -38,7 +39,8 @@ export async function rejectExchange(id: string): Promise<ConnectState> {
   return { ok: true };
 }
 
-export async function sendMessage(text: string): Promise<ConnectState> {
+/** 특정 어르신(familyId = family_links.id)에게 메시지 전송. RLS 가 멤버십 검증. */
+export async function sendMessage(familyId: string, text: string): Promise<ConnectState> {
   const clean = text.trim();
   if (!clean) return { error: "내용을 적어주세요" };
 
@@ -48,17 +50,9 @@ export async function sendMessage(text: string): Promise<ConnectState> {
   } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요해요" };
 
-  const { data: link } = await supabase
-    .from("family_links")
-    .select("id")
-    .eq("child_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
-  if (!link) return { error: "먼저 어머니와 연결해 주세요" };
-
   const { error } = await supabase
     .from("messages")
-    .insert({ family_id: link.id, from_id: user.id, text: clean });
+    .insert({ family_id: familyId, from_id: user.id, text: clean });
   if (error) return { error: "전송에 실패했어요" };
 
   revalidatePath("/connect");

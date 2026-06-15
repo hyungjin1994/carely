@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, Role } from "@/lib/database.types";
+import { normalizeRole } from "@/lib/roles";
 
 /** Supabase 세션 검증 후 auth user 반환. 렌더당 메모이즈. */
 export const verifySession = cache(async () => {
@@ -37,7 +38,7 @@ export const ensureProfile = cache(async (): Promise<Profile> => {
   if (existing) return existing as Profile;
 
   const meta = session.authUser.user_metadata ?? {};
-  const role: Role = meta.role === "child" ? "child" : "mom";
+  const role: Role = normalizeRole(meta.role);
   const { data: created } = await supabase
     .from("profiles")
     .insert({ id: session.userId, name: meta.name ?? null, role })
@@ -47,11 +48,20 @@ export const ensureProfile = cache(async (): Promise<Profile> => {
   return created as Profile;
 });
 
-/** 역할 검증. 어긋나면 역할별 홈으로 리다이렉트. */
-export async function requireRole(role: Role): Promise<Profile> {
+/** 어르신(부모님·조부모님) 전용. 관리자면 관리자 홈으로. */
+export async function requireSenior(): Promise<Profile> {
   const profile = await ensureProfile();
-  if (profile.role !== role) {
-    redirect(profile.role === "child" ? "/connect" : "/home");
+  if (profile.role === "manager") {
+    redirect("/connect");
+  }
+  return profile;
+}
+
+/** 관리자 전용. 어르신이면 어르신 홈으로. */
+export async function requireManager(): Promise<Profile> {
+  const profile = await ensureProfile();
+  if (profile.role !== "manager") {
+    redirect("/home");
   }
   return profile;
 }

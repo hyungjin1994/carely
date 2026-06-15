@@ -28,7 +28,7 @@ const field: React.CSSProperties = {
 
 export function SignupForm() {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(signup, {});
-  const [role, setRole] = useState<"mom" | "child">("mom");
+  const [role, setRole] = useState<"parent" | "grandparent" | "manager">("parent");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const mismatch = pw2.length > 0 && pw !== pw2;
@@ -62,10 +62,11 @@ export function SignupForm() {
       </div>
 
       {/* 역할 선택 */}
-      <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 22 }}>
         {([
-          { v: "mom", label: "어머니" },
-          { v: "child", label: "자녀" },
+          { v: "parent", label: "부모님" },
+          { v: "grandparent", label: "조부모님" },
+          { v: "manager", label: "관리자" },
         ] as const).map((r) => {
           const on = role === r.v;
           return (
@@ -81,7 +82,7 @@ export function SignupForm() {
                 background: on ? "#EAF2FE" : "var(--c-card)",
                 color: on ? "#0066FF" : "var(--c-text)",
                 fontWeight: 800,
-                fontSize: "calc(16px*var(--fs))",
+                fontSize: "calc(15px*var(--fs))",
               }}
             >
               {r.label}
@@ -93,11 +94,11 @@ export function SignupForm() {
       <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
           <div style={fieldLabel}>이름 (호칭)</div>
-          <input name="name" placeholder="예: 형진엄마" style={field} />
+          <input name="name" placeholder="예: 김순자 / 형진아빠" style={field} />
         </div>
         <div>
-          <div style={fieldLabel}>이메일</div>
-          <input name="email" type="email" autoComplete="email" placeholder="이메일 주소" style={field} />
+          <div style={fieldLabel}>아이디</div>
+          <input name="loginId" type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="영문·숫자 3~20자" style={field} />
         </div>
         <div>
           <div style={fieldLabel}>비밀번호</div>

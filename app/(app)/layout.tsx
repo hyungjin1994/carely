@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth/dal";
+import { requireSenior } from "@/lib/auth/dal";
 import { TabBar } from "@/components/common/tab-bar";
 import { ToastHost } from "@/components/common/toast";
 import { ThemeRoot } from "@/components/common/theme-root";
@@ -8,7 +8,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await requireRole("mom");
+  const profile = await requireSenior();
 
   return (
     <div

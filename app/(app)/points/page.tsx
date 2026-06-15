@@ -11,6 +11,7 @@ const GAME_NAME: Record<string, string> = Object.fromEntries(GAMES.map((g) => [g
 
 function reasonLabel(reason: string, gameId: string | null): string {
   if (reason === "photo") return "사진 올리기";
+  if (reason === "exchange") return "환전";
   if (gameId && GAME_NAME[gameId]) return GAME_NAME[gameId];
   return "게임";
 }
@@ -91,18 +92,22 @@ export default async function PointsPage() {
             아직 적립 내역이 없어요
           </div>
         )}
-        {(ledger ?? []).map((sc) => (
-          <div key={sc.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, padding: "14px 16px" }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: "#EAF2FE", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name={sc.reason === "photo" ? "upload" : "sparkle-fill"} size={22} color="#0066FF" />
+        {(ledger ?? []).map((sc) => {
+          const pos = (sc.delta ?? 0) >= 0;
+          const icon = sc.reason === "photo" ? "upload" : sc.reason === "exchange" ? "coins-fill" : "sparkle-fill";
+          return (
+            <div key={sc.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, padding: "14px 16px" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: pos ? "#EAF2FE" : "#FEECEC", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon name={icon} size={22} color={pos ? "#0066FF" : "#E52222"} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 700, color: "var(--c-text)" }}>{reasonLabel(sc.reason, sc.game_id)}</div>
+                <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>{formatKstHeader(new Date(sc.created_at), "month-day")}</div>
+              </div>
+              <div style={{ fontSize: "calc(17px*var(--fs))", fontWeight: 800, color: pos ? "#00A63E" : "#E52222" }}>{pos ? "+" : ""}{fmt(sc.delta)}P</div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 700, color: "var(--c-text)" }}>{reasonLabel(sc.reason, sc.game_id)}</div>
-              <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>{formatKstHeader(new Date(sc.created_at), "month-day")}</div>
-            </div>
-            <div style={{ fontSize: "calc(17px*var(--fs))", fontWeight: 800, color: "#00A63E" }}>+{sc.delta}P</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

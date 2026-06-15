@@ -45,10 +45,17 @@ export const GAMES: GameMeta[] = [
 ];
 
 /** 정답 1개당 기본 점수. 최종 점수 = correct * POINTS_PER * mult. */
-export const POINTS_PER = 25;
+export const POINTS_PER = 8;
 
 /** 하루 최대 포인트 (KST 자정 리셋). */
 export const DAILY_CAP = 1000;
+
+/**
+ * 게임 1종당 하루 최대 적립 포인트 (KST 자정 리셋).
+ * 한 게임만 반복해서 포인트를 몰아 받지 못하게 하는 제한.
+ * 권위는 submit_game_result RPC — 변경 시 마이그레이션 0005 의 per_game_cap 도 같이 맞출 것.
+ */
+export const PER_GAME_DAILY_CAP = 200;
 
 export const GAME_IDS: GameId[] = GAMES.map((g) => g.id);
 

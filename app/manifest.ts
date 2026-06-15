@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Carely",
     short_name: "Carely",
-    description: "엄마와 자녀가 함께 건강을 챙기는 앱",
+    description: "부모님·조부모님과 가족이 함께 건강을 챙기는 앱",
     start_url: "/home",
     display: "standalone",
     background_color: "#F4F6F9",

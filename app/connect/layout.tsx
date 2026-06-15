@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth/dal";
+import { requireManager } from "@/lib/auth/dal";
 import { ToastHost } from "@/components/common/toast";
 import { ThemeRoot } from "@/components/common/theme-root";
 
@@ -7,7 +7,7 @@ export default async function ConnectLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await requireRole("child");
+  const profile = await requireManager();
   return (
     <div
       data-contrast={profile.high_contrast ? "high" : "normal"}
