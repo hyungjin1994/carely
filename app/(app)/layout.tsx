@@ -2,6 +2,7 @@ import { requireSenior } from "@/lib/auth/dal";
 import { TabBar } from "@/components/common/tab-bar";
 import { ToastHost } from "@/components/common/toast";
 import { ThemeRoot } from "@/components/common/theme-root";
+import { RouteFab } from "@/components/common/route-fab";
 
 export default async function AppLayout({
   children,
@@ -20,10 +21,12 @@ export default async function AppLayout({
         minHeight: 0,
         display: "flex",
         flexDirection: "column",
+        position: "relative",
       }}
     >
       <ThemeRoot fontScale={profile.font_scale} highContrast={profile.high_contrast} />
       <div className="cy-content">{children}</div>
+      <RouteFab />
       <TabBar />
       <ToastHost />
     </div>
