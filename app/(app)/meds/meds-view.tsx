@@ -9,7 +9,6 @@ import { showToast } from "@/components/common/toast";
 import { createMedication, deleteMedication } from "./actions";
 
 type Med = { id: string; name: string; dose: string; times: string[] };
-const TIMES = ["아침", "점심", "저녁", "자기 전"];
 
 const sheetInput: React.CSSProperties = {
   width: "100%",
@@ -31,10 +30,14 @@ export function MedsView({ meds }: { meds: Med[] }) {
   const [name, setName] = useState("");
   const [dose, setDose] = useState("1정");
   const [times, setTimes] = useState<string[]>([]);
+  const [newTime, setNewTime] = useState("08:00");
   const [pending, startTransition] = useTransition();
 
-  const toggleTime = (t: string) =>
-    setTimes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  const addTime = () => {
+    if (!newTime || times.includes(newTime)) return;
+    setTimes((cur) => [...cur, newTime].sort());
+  };
+  const removeTime = (t: string) => setTimes((cur) => cur.filter((x) => x !== t));
 
   const save = () => {
     startTransition(async () => {
@@ -104,16 +107,33 @@ export function MedsView({ meds }: { meds: Med[] }) {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="약 이름 (예: 혈압약)" style={{ ...sheetInput, marginBottom: 12 }} />
         <input value={dose} onChange={(e) => setDose(e.target.value)} placeholder="용량 (예: 1정)" style={{ ...sheetInput, marginBottom: 14 }} />
         <div style={{ fontSize: "calc(14px*var(--fs))", fontWeight: 700, color: "var(--c-sub)", marginBottom: 8 }}>먹는 시간</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {TIMES.map((t) => {
-            const on = times.includes(t);
-            return (
-              <button key={t} onClick={() => toggleTime(t)} style={{ padding: "12px 16px", borderRadius: 12, border: "2px solid " + (on ? "#00A63E" : "var(--c-line)"), background: on ? "#EAFBF0" : "var(--c-card)", fontSize: "calc(15px*var(--fs))", fontWeight: 700, color: on ? "#067A33" : "var(--c-text)" }}>
-                {t}
-              </button>
-            );
-          })}
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            type="time"
+            value={newTime}
+            onChange={(e) => setNewTime(e.target.value)}
+            style={{ ...sheetInput, flex: 1, marginBottom: 0 }}
+          />
+          <button onClick={addTime} style={{ border: "none", background: "#00A63E", color: "#fff", borderRadius: 14, padding: "0 18px", height: 58, fontSize: "calc(15px*var(--fs))", fontWeight: 800, flexShrink: 0 }}>
+            추가
+          </button>
         </div>
+        {times.length > 0 ? (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            {times.map((t) => (
+              <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "calc(15px*var(--fs))", fontWeight: 700, color: "#067A33", background: "#EAFBF0", padding: "8px 12px", borderRadius: 12 }}>
+                {t}
+                <button onClick={() => removeTime(t)} aria-label="시간 삭제" style={{ border: "none", background: "transparent", padding: 0, display: "flex" }}>
+                  <Icon name="close" size={16} color="#067A33" />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-faint)", marginTop: 8 }}>
+            시간을 추가해 주세요 (예: 08:00, 13:00, 20:00)
+          </div>
+        )}
         <button onClick={save} disabled={pending} style={{ marginTop: 18, width: "100%", border: "none", borderRadius: 16, height: 60, background: "var(--c-primary)", color: "#fff", fontSize: "calc(18px*var(--fs))", fontWeight: 800, opacity: pending ? 0.6 : 1 }}>
           저장하기
         </button>

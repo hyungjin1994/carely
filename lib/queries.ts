@@ -2,7 +2,6 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate, kstHour } from "@/lib/time";
-import { hourToSlot } from "@/lib/meds/schedule";
 import { DAILY_CAP } from "@/lib/games/config";
 import type { MeasurementKind } from "@/lib/database.types";
 
@@ -117,13 +116,14 @@ export async function getTodayTodos(userId?: string): Promise<TodoItem[]> {
   const items: TodoItem[] = [];
   for (const d of doses ?? []) {
     const med = (d as unknown as { medications: { name: string; dose: string } | null }).medications;
-    const hr = new Date(d.scheduled_at).getUTCHours();
-    // KST hour
-    const kstH = (hr + 9) % 24;
+    const dt = new Date(d.scheduled_at);
+    // KST 시각 (HH:MM)
+    const kstH = (dt.getUTCHours() + 9) % 24;
+    const kstM = dt.getUTCMinutes();
     items.push({
       kind: "med",
       id: d.id,
-      chip: hourToSlot(kstH),
+      chip: `${kstH}:${String(kstM).padStart(2, "0")}`,
       chipColor: "#00A63E",
       title: med ? `${med.name} ${med.dose}` : "약",
       done: d.taken,
