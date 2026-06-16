@@ -21,6 +21,8 @@ export default async function HomePage() {
   const remain = todos.filter((t) => !t.done).length;
   const name = profile.name ?? "회원";
   const latest = family.latestMessage;
+  // 메시지·사진 중 더 최근 것을 보여준다 (썸네일과 글이 같은 항목이 되도록).
+  const showPhoto = !!family.photoPath && (!latest || (family.photoAt ?? "") >= latest.at);
 
   return (
     <div style={{ padding: "4px 22px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -174,7 +176,7 @@ export default async function HomePage() {
             height: 56,
             borderRadius: 16,
             flexShrink: 0,
-            background: photoUrl
+            background: showPhoto && photoUrl
               ? `center/cover no-repeat url(${photoUrl})`
               : "linear-gradient(135deg,#FF9C63,#FF5E00)",
           }}
@@ -185,7 +187,7 @@ export default async function HomePage() {
             <span style={{ fontSize: "calc(13px*var(--fs))", fontWeight: 800, color: "#0066FF" }}>가족 소식</span>
           </div>
           <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 600, color: "var(--c-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {family.photoPath
+            {showPhoto
               ? (family.photoCaption ?? "사진")
               : latest
                 ? latest.text

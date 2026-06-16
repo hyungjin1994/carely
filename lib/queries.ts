@@ -153,21 +153,21 @@ export async function getFamilySummary(uid: string) {
     .eq("status", "active")
     .maybeSingle();
 
-  let latestMessage: { text: string; mine: boolean } | null = null;
+  let latestMessage: { text: string; mine: boolean; at: string } | null = null;
   if (link) {
     const { data: msg } = await supabase
       .from("messages")
-      .select("text, from_id")
+      .select("text, from_id, created_at")
       .eq("family_id", link.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (msg) latestMessage = { text: msg.text, mine: msg.from_id === uid };
+    if (msg) latestMessage = { text: msg.text, mine: msg.from_id === uid, at: msg.created_at };
   }
 
   const { data: photo } = await supabase
     .from("photos")
-    .select("storage_path, caption")
+    .select("storage_path, caption, created_at")
     .eq("owner_id", uid)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -178,6 +178,7 @@ export async function getFamilySummary(uid: string) {
     latestMessage,
     photoPath: photo?.storage_path ?? null,
     photoCaption: photo?.caption ?? null,
+    photoAt: photo?.created_at ?? null,
   };
 }
 
