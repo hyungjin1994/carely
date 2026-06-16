@@ -12,7 +12,7 @@ export default async function ConnectPage() {
 
   const { data: links } = await supabase
     .from("family_links")
-    .select("id, senior_id")
+    .select("id, senior_id, created_at")
     .eq("manager_id", profile.id)
     .eq("status", "active");
 
@@ -53,6 +53,7 @@ export default async function ConnectPage() {
       return {
         linkId: l.id,
         seniorId: sid,
+        connectedAt: l.created_at,
         name: prof?.name ?? "어르신",
         role: (prof?.role ?? "parent") as Role,
         summary,

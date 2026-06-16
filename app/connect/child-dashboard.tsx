@@ -7,6 +7,7 @@ import { Icon } from "@/components/common/icon";
 import { fmt } from "@/lib/utils";
 import { showToast } from "@/components/common/toast";
 import { roleLabel } from "@/lib/roles";
+import { formatKstHeader } from "@/lib/time";
 import { MEASURE_KINDS, measureStatus } from "@/lib/measurements";
 import type { Role, MeasurementKind } from "@/lib/database.types";
 import type { SeniorSummary, MeasureLatest } from "@/lib/queries";
@@ -19,6 +20,7 @@ type Feed = { id: string; text: string; mine: boolean };
 export type SeniorView = {
   linkId: string;
   seniorId: string;
+  connectedAt: string;
   name: string;
   role: Role;
   summary: SeniorSummary;
@@ -95,7 +97,7 @@ function SeniorCard({ senior: s }: { senior: SeniorView }) {
           <div style={{ fontSize: "calc(20px*var(--fs))", fontWeight: 800, color: "var(--c-text)" }}>{s.name}</div>
           <div style={{ fontSize: "calc(13px*var(--fs))", color: "#00A63E", fontWeight: 700, display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#00A63E" }} />
-            {roleLabel(s.role)} · 연결됨
+            {roleLabel(s.role)} · {formatKstHeader(new Date(s.connectedAt), "month-day")}부터 연결됨
           </div>
         </div>
       </div>

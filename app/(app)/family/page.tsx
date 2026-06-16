@@ -13,7 +13,7 @@ export default async function FamilyPage() {
   const profile = await ensureProfile();
   const supabase = await createClient();
 
-  const [{ data: code }, { data: link }, timeline] = await Promise.all([
+  const [{ data: code }, { data: links }, timeline] = await Promise.all([
     supabase
       .from("connect_codes")
       .select("code, expires_at")
@@ -25,12 +25,22 @@ export default async function FamilyPage() {
       .maybeSingle(),
     supabase
       .from("family_links")
-      .select("id")
+      .select("id, manager_id, created_at")
       .eq("senior_id", profile.id)
       .eq("status", "active")
-      .maybeSingle(),
+      .order("created_at"),
     getTimeline(),
   ]);
+  const link = (links ?? [])[0] ?? null;
+
+  // 연결된 관리자(가족) 목록 + 연결 날짜
+  let managers: { name: string; at: string }[] = [];
+  const mgrIds = (links ?? []).map((l) => l.manager_id);
+  if (mgrIds.length) {
+    const { data: profs } = await supabase.from("profiles").select("id, name").in("id", mgrIds);
+    const nameOf = new Map((profs ?? []).map((p) => [p.id, p.name ?? "관리자"]));
+    managers = (links ?? []).map((l) => ({ name: nameOf.get(l.manager_id) ?? "관리자", at: l.created_at }));
+  }
 
   let feed: { id: string; text: string; from_id: string; created_at: string }[] = [];
   if (link) {
@@ -50,6 +60,29 @@ export default async function FamilyPage() {
       <PhotoUpload />
 
       <ConnectCodeCard initialCode={code?.code ?? null} />
+
+      <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>연결된 가족</div>
+      {managers.length === 0 ? (
+        <div style={{ textAlign: "center", color: "var(--c-faint)", fontSize: "calc(14px*var(--fs))", padding: "16px 0", lineHeight: 1.5 }}>
+          아직 연결된 가족이 없어요.
+          <br />위 코드를 가족에게 알려주세요.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {managers.map((m, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--c-card)", border: "1px solid var(--c-line)", borderRadius: 16, padding: "12px 14px" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "#EAF2FE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="person-fill" size={22} color="#0066FF" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)" }}>{m.name}</div>
+                <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>{formatKstHeader(new Date(m.at), "month-day")} 연결됨</div>
+              </div>
+              <span style={{ fontSize: "calc(12px*var(--fs))", fontWeight: 800, color: "#0066FF", background: "#EAF2FE", padding: "5px 10px", borderRadius: 9 }}>관리자</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>가족 앨범</div>
       <Timeline posts={timeline} />
