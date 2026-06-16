@@ -103,6 +103,7 @@ export function RouteFab() {
 
   return (
     <>
+      {!open && (
       <button
         onClick={() => setOpen(true)}
         aria-label="가는 길 찾기"
@@ -128,6 +129,7 @@ export function RouteFab() {
         <Icon name="location" size={24} color="#fff" />
         <span style={{ fontSize: 10, fontWeight: 800, lineHeight: 1 }}>가는길</span>
       </button>
+      )}
 
       <BottomSheet open={open} onClose={close} title="어디로 갈까요?">
         {supported && (
