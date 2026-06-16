@@ -139,6 +139,15 @@ textarea {
   from { transform: translateY(10px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+@keyframes cyskeleton {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.cy-skel {
+  background: var(--c-line);
+  border-radius: 12px;
+  animation: cyskeleton 1.2s ease-in-out infinite;
+}
 
 /* ===========================================================================
    앱 셸 — 데스크톱에선 폰 프레임처럼 가운데, 모바일에선 전체 화면
