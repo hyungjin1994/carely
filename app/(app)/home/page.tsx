@@ -49,6 +49,23 @@ export default async function HomePage() {
         <div style={{ fontSize: "calc(24px*var(--fs))", fontWeight: 800, letterSpacing: "-0.02em" }}>{gr.t}</div>
       </div>
 
+      {/* 초기 설정 안내 (미완료 시) */}
+      {!profile.onboarded && (
+        <Link
+          href="/onboarding"
+          style={{ display: "flex", alignItems: "center", gap: 12, background: "#FFF6E9", border: "1px solid #FFE0B2", borderRadius: 18, padding: "14px 16px", textDecoration: "none" }}
+        >
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: "#FF9200", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="person-fill" size={22} color="#fff" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "calc(15px*var(--fs))", fontWeight: 800, color: "#9C5800" }}>건강·생활 정보를 채워주세요</div>
+            <div style={{ fontSize: "calc(13px*var(--fs))", color: "#B87514", marginTop: 2 }}>약·일정 알림과 가족 돌봄에 도움이 돼요</div>
+          </div>
+          <Icon name="chevron-right" size={22} color="#C98A2E" />
+        </Link>
+      )}
+
       {/* 오늘 챙길 일 */}
       <div
         style={{

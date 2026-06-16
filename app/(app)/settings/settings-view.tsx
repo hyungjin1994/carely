@@ -164,6 +164,18 @@ export function SettingsView({
           )}
         </div>
 
+        {/* 건강·생활 정보 */}
+        <Link href="/onboarding" style={{ ...rowCard, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: "#EAF2FE", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="person-fill" size={24} color="#0066FF" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "calc(17px*var(--fs))", fontWeight: 800, color: "var(--c-text)" }}>건강·생활 정보</div>
+            <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>생년월일·루틴·응급 연락처</div>
+          </div>
+          <Icon name="chevron-right" size={24} color="var(--c-faint)" />
+        </Link>
+
         {/* 약 관리 */}
         <Link href="/meds" style={{ ...rowCard, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, background: "#EAFBF0", display: "flex", alignItems: "center", justifyContent: "center" }}>

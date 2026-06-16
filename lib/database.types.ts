@@ -12,6 +12,23 @@ export type Profile = {
   font_scale: number;
   high_contrast: boolean;
   notify_on: boolean;
+  // 온보딩 정보 (0013)
+  birth_date: string | null;
+  gender: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  wake_time: string | null;
+  sleep_time: string | null;
+  meal_morning: string | null;
+  meal_noon: string | null;
+  meal_evening: string | null;
+  exercise_time: string | null;
+  conditions: string[] | null;
+  allergies: string | null;
+  living: string | null;
+  emergency_name: string | null;
+  emergency_phone: string | null;
+  onboarded: boolean;
   created_at: string;
 };
 

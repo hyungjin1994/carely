@@ -60,7 +60,7 @@ export async function signup(
 
   // 이메일 확인이 꺼져 있으면 즉시 세션 발급 → 역할별 홈으로.
   if (data.session) {
-    redirect(role === "manager" ? "/connect" : "/home");
+    redirect(role === "manager" ? "/connect" : "/onboarding");
   }
   // 이메일 확인이 켜진 경우 로그인 화면으로 안내.
   redirect("/login?check=1");

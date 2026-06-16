@@ -9,6 +9,23 @@ create table public.profiles (
   font_scale    numeric not null default 1.0,
   high_contrast boolean not null default false,
   notify_on     boolean not null default true,
+  -- 어르신 초기 설정(온보딩) 정보
+  birth_date    date,
+  gender        text,
+  height_cm     numeric,
+  weight_kg     numeric,
+  wake_time     text,
+  sleep_time    text,
+  meal_morning  text,
+  meal_noon     text,
+  meal_evening  text,
+  exercise_time text,
+  conditions    text[],
+  allergies     text,
+  living        text,
+  emergency_name  text,
+  emergency_phone text,
+  onboarded     boolean not null default false,
   created_at    timestamptz not null default now()
 );
 
