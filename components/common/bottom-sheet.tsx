@@ -22,7 +22,7 @@ export function BottomSheet({
         position: "absolute",
         inset: 0,
         background: "rgba(10,12,20,.42)",
-        zIndex: 30,
+        zIndex: 50,
         display: "flex",
         alignItems: "flex-end",
       }}

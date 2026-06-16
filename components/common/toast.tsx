@@ -35,7 +35,7 @@ export function ToastHost() {
         left: "50%",
         bottom: 108,
         transform: "translateX(-50%)",
-        zIndex: 40,
+        zIndex: 60,
         background: "#16181D",
         color: "#fff",
         padding: "12px 20px",
