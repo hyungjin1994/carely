@@ -276,7 +276,7 @@ export async function getTimeline(ownerIds?: string[]): Promise<TimelinePost[]> 
 
   let q = supabase
     .from("photos")
-    .select("id, owner_id, storage_path, caption, created_at, profiles(name)")
+    .select("id, owner_id, storage_path, caption, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
   if (ownerIds && ownerIds.length) q = q.in("owner_id", ownerIds);
@@ -285,33 +285,42 @@ export async function getTimeline(ownerIds?: string[]): Promise<TimelinePost[]> 
   if (!list.length) return [];
 
   const ids = list.map((p) => p.id);
-  const urls = await getSignedPhotoUrls(list.map((p) => p.storage_path));
-  const [{ data: likes }, { data: comments }] = await Promise.all([
+  const [urls, { data: likes }, { data: comments }] = await Promise.all([
+    getSignedPhotoUrls(list.map((p) => p.storage_path)),
     supabase.from("photo_likes").select("photo_id, user_id").in("photo_id", ids),
     supabase
       .from("photo_comments")
-      .select("id, photo_id, user_id, text, created_at, profiles(name)")
+      .select("id, photo_id, user_id, text, created_at")
       .in("photo_id", ids)
       .order("created_at"),
   ]);
 
+  // 작성자/댓글 작성자 이름은 임베드 없이 한 번에 조회 (조인 실패 위험 제거).
+  const nameIds = Array.from(
+    new Set([...list.map((p) => p.owner_id), ...(comments ?? []).map((c) => c.user_id)]),
+  );
+  const { data: profs } = await supabase.from("profiles").select("id, name").in("id", nameIds);
+  const nameOf = new Map((profs ?? []).map((p) => [p.id, p.name ?? "가족"]));
+
   return list.map((p) => {
-    const owner = (p as unknown as { profiles: { name: string | null } | null }).profiles;
     const pl = (likes ?? []).filter((l) => l.photo_id === p.id);
     const pc = (comments ?? []).filter((c) => c.photo_id === p.id);
     return {
       id: p.id,
       url: urls[p.storage_path] ?? null,
       caption: p.caption,
-      ownerName: owner?.name ?? "가족",
+      ownerName: nameOf.get(p.owner_id) ?? "가족",
       mine: p.owner_id === uid,
       createdAt: p.created_at,
       likeCount: pl.length,
       likedByMe: pl.some((l) => l.user_id === uid),
-      comments: pc.map((c) => {
-        const cn = (c as unknown as { profiles: { name: string | null } | null }).profiles;
-        return { id: c.id, name: cn?.name ?? "가족", text: c.text, mine: c.user_id === uid, createdAt: c.created_at };
-      }),
+      comments: pc.map((c) => ({
+        id: c.id,
+        name: nameOf.get(c.user_id) ?? "가족",
+        text: c.text,
+        mine: c.user_id === uid,
+        createdAt: c.created_at,
+      })),
     };
   });
 }
