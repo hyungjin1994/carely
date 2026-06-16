@@ -173,6 +173,22 @@ create table public.measurements (
 );
 create index measurements_user_idx on public.measurements(user_id, measured_at desc);
 
+-- ── 가족 타임라인: 사진 좋아요 / 댓글 ──
+create table public.photo_likes (
+  photo_id   uuid not null references public.photos(id) on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (photo_id, user_id)
+);
+create table public.photo_comments (
+  id         uuid primary key default gen_random_uuid(),
+  photo_id   uuid not null references public.photos(id) on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  text       text not null,
+  created_at timestamptz not null default now()
+);
+create index photo_comments_photo_idx on public.photo_comments(photo_id, created_at);
+
 -- ── 웹 푸시 구독 ──
 create table public.push_subscriptions (
   id         uuid primary key default gen_random_uuid(),
@@ -561,6 +577,36 @@ create policy measurements_self on public.measurements
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy measurements_family_read on public.measurements
   for select using (public.is_linked(auth.uid(), user_id));
+
+-- ── 가족 타임라인: 좋아요/댓글 ──
+alter table public.photo_likes enable row level security;
+alter table public.photo_comments enable row level security;
+
+create policy photo_likes_read on public.photo_likes
+  for select using (
+    exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+create policy photo_likes_write on public.photo_likes
+  for all using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+
+create policy photo_comments_read on public.photo_comments
+  for select using (
+    exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+create policy photo_comments_write on public.photo_comments
+  for all using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
 
 
 -- ============================================================

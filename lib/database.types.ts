@@ -117,6 +117,20 @@ export type Photo = {
   created_at: string;
 };
 
+export type PhotoLike = {
+  photo_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+export type PhotoComment = {
+  id: string;
+  photo_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+};
+
 export type Message = {
   id: string;
   family_id: string;
@@ -178,6 +192,8 @@ export type Database = {
       medications: Table<Medication>;
       med_doses: Table<MedDose>;
       photos: Table<Photo>;
+      photo_likes: Table<PhotoLike>;
+      photo_comments: Table<PhotoComment>;
       messages: Table<Message>;
       measurements: Table<Measurement>;
       push_subscriptions: Table<PushSubscription>;

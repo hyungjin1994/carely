@@ -113,3 +113,33 @@ create policy measurements_self on public.measurements
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy measurements_family_read on public.measurements
   for select using (public.is_linked(auth.uid(), user_id));
+
+-- ── 가족 타임라인: 좋아요/댓글 — 볼 수 있는 사진에 한해, 본인 것만 작성 ──
+alter table public.photo_likes enable row level security;
+alter table public.photo_comments enable row level security;
+
+create policy photo_likes_read on public.photo_likes
+  for select using (
+    exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+create policy photo_likes_write on public.photo_likes
+  for all using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+
+create policy photo_comments_read on public.photo_comments
+  for select using (
+    exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );
+create policy photo_comments_write on public.photo_comments
+  for all using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.photos p
+      where p.id = photo_id and (p.owner_id = auth.uid() or public.is_linked(auth.uid(), p.owner_id)))
+  );

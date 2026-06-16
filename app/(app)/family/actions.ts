@@ -29,12 +29,58 @@ export async function uploadPhoto(formData: FormData): Promise<FamilyActionState
     .insert({ owner_id: user.id, storage_path: path, caption });
   if (rowErr) return { error: "저장에 실패했어요" };
 
-  // +5P (하루 한도 적용)
-  await supabase.rpc("award_points", { p_user: user.id, p_raw: 5, p_reason: "photo", p_game_id: "" });
+  // +5P (어르신만 — 관리자는 포인트 대상 아님). 하루 한도 적용.
+  const { data: prof } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (prof?.role !== "manager") {
+    await supabase.rpc("award_points", { p_user: user.id, p_raw: 5, p_reason: "photo", p_game_id: "" });
+  }
 
   revalidatePath("/family");
   revalidatePath("/home");
+  revalidatePath("/connect");
   return { ok: true };
+}
+
+/** 사진 좋아요 토글. */
+export async function toggleLike(photoId: string, liked: boolean): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  if (liked) {
+    await supabase.from("photo_likes").delete().eq("photo_id", photoId).eq("user_id", user.id);
+  } else {
+    await supabase.from("photo_likes").upsert({ photo_id: photoId, user_id: user.id });
+  }
+  revalidatePath("/family");
+  revalidatePath("/connect");
+}
+
+/** 사진 댓글 작성. */
+export async function addComment(photoId: string, text: string): Promise<FamilyActionState> {
+  const clean = text.trim();
+  if (!clean) return { error: "내용을 적어주세요" };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요해요" };
+  const { error } = await supabase
+    .from("photo_comments")
+    .insert({ photo_id: photoId, user_id: user.id, text: clean });
+  if (error) return { error: "댓글 전송에 실패했어요" };
+  revalidatePath("/family");
+  revalidatePath("/connect");
+  return { ok: true };
+}
+
+/** 내 댓글 삭제 (RLS 가 본인 것만 허용). */
+export async function deleteComment(id: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase.from("photo_comments").delete().eq("id", id);
+  revalidatePath("/family");
+  revalidatePath("/connect");
 }
 
 /** 어르신 → 관리자 메시지 전송. familyId = family_links.id. RLS 가 멤버십 검증. */

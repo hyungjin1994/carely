@@ -1,9 +1,10 @@
 import { ensureProfile } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedPhotoUrls } from "@/lib/storage";
+import { getTimeline } from "@/lib/queries";
 import { formatKstHeader } from "@/lib/time";
 import { SubHeader } from "@/components/common/sub-header";
 import { Icon } from "@/components/common/icon";
+import { Timeline } from "@/components/family/timeline";
 import { PhotoUpload } from "./photo-upload";
 import { ConnectCodeCard } from "./connect-code-card";
 import { FamilyCompose } from "./family-compose";
@@ -12,7 +13,7 @@ export default async function FamilyPage() {
   const profile = await ensureProfile();
   const supabase = await createClient();
 
-  const [{ data: code }, { data: photos }, { data: link }] = await Promise.all([
+  const [{ data: code }, { data: link }, timeline] = await Promise.all([
     supabase
       .from("connect_codes")
       .select("code, expires_at")
@@ -23,20 +24,13 @@ export default async function FamilyPage() {
       .limit(1)
       .maybeSingle(),
     supabase
-      .from("photos")
-      .select("id, storage_path, caption, created_at")
-      .eq("owner_id", profile.id)
-      .order("created_at", { ascending: false }),
-    supabase
       .from("family_links")
       .select("id")
       .eq("senior_id", profile.id)
       .eq("status", "active")
       .maybeSingle(),
+    getTimeline(),
   ]);
-
-  const photoList = photos ?? [];
-  const urls = await getSignedPhotoUrls(photoList.map((p) => p.storage_path));
 
   let feed: { id: string; text: string; from_id: string; created_at: string }[] = [];
   if (link) {
@@ -57,22 +51,8 @@ export default async function FamilyPage() {
 
       <ConnectCodeCard initialCode={code?.code ?? null} />
 
-      <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>내가 올린 사진</div>
-      {photoList.length === 0 ? (
-        <div style={{ textAlign: "center", color: "var(--c-faint)", fontSize: "calc(15px*var(--fs))", padding: "20px 0" }}>아직 올린 사진이 없어요</div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {photoList.map((p) => (
-            <div key={p.id} style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--c-line)" }}>
-              <div style={{ height: 110, background: urls[p.storage_path] ? `center/cover no-repeat url(${urls[p.storage_path]})` : "linear-gradient(135deg,#FFB8F3,#E846CD)" }} />
-              <div style={{ padding: "10px 12px", background: "var(--c-card)" }}>
-                <div style={{ fontSize: "calc(13px*var(--fs))", fontWeight: 700, color: "var(--c-text)", lineHeight: 1.3 }}>{p.caption}</div>
-                <div style={{ fontSize: "calc(11px*var(--fs))", color: "var(--c-faint)", marginTop: 3 }}>{formatKstHeader(new Date(p.created_at), "month-day")}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>가족 앨범</div>
+      <Timeline posts={timeline} />
 
       <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: "var(--c-text)", margin: "24px 0 12px" }}>가족 소식</div>
       {link && <FamilyCompose familyId={link.id} />}

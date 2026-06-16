@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate, kstHour } from "@/lib/time";
 import { DAILY_CAP } from "@/lib/games/config";
+import { getSignedPhotoUrls } from "@/lib/storage";
 import type { MeasurementKind } from "@/lib/database.types";
 
 export type TodoItem = {
@@ -249,6 +250,70 @@ export async function getLatestMeasurements(
     if (!out[k]) out[k] = { v1: r.v1, v2: r.v2, v3: r.v3, measured_at: r.measured_at };
   }
   return out;
+}
+
+export type TimelineComment = { id: string; name: string; text: string; mine: boolean; createdAt: string };
+export type TimelinePost = {
+  id: string;
+  url: string | null;
+  caption: string | null;
+  ownerName: string;
+  mine: boolean;
+  createdAt: string;
+  likeCount: number;
+  likedByMe: boolean;
+  comments: TimelineComment[];
+};
+
+/** 가족 타임라인 — 볼 수 있는 사진(본인+연결가족) 최신순 + 좋아요/댓글.
+ *  ownerIds 를 주면 그 소유자들 것만 (관리자가 특정 어르신 앨범 볼 때). */
+export async function getTimeline(ownerIds?: string[]): Promise<TimelinePost[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const uid = user?.id ?? "";
+
+  let q = supabase
+    .from("photos")
+    .select("id, owner_id, storage_path, caption, created_at, profiles(name)")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (ownerIds && ownerIds.length) q = q.in("owner_id", ownerIds);
+  const { data: photos } = await q;
+  const list = photos ?? [];
+  if (!list.length) return [];
+
+  const ids = list.map((p) => p.id);
+  const urls = await getSignedPhotoUrls(list.map((p) => p.storage_path));
+  const [{ data: likes }, { data: comments }] = await Promise.all([
+    supabase.from("photo_likes").select("photo_id, user_id").in("photo_id", ids),
+    supabase
+      .from("photo_comments")
+      .select("id, photo_id, user_id, text, created_at, profiles(name)")
+      .in("photo_id", ids)
+      .order("created_at"),
+  ]);
+
+  return list.map((p) => {
+    const owner = (p as unknown as { profiles: { name: string | null } | null }).profiles;
+    const pl = (likes ?? []).filter((l) => l.photo_id === p.id);
+    const pc = (comments ?? []).filter((c) => c.photo_id === p.id);
+    return {
+      id: p.id,
+      url: urls[p.storage_path] ?? null,
+      caption: p.caption,
+      ownerName: owner?.name ?? "가족",
+      mine: p.owner_id === uid,
+      createdAt: p.created_at,
+      likeCount: pl.length,
+      likedByMe: pl.some((l) => l.user_id === uid),
+      comments: pc.map((c) => {
+        const cn = (c as unknown as { profiles: { name: string | null } | null }).profiles;
+        return { id: c.id, name: cn?.name ?? "가족", text: c.text, mine: c.user_id === uid, createdAt: c.created_at };
+      }),
+    };
+  });
 }
 
 export { kstHour, EVENT_TYPE_COLOR };

@@ -167,6 +167,22 @@ create table public.measurements (
 );
 create index measurements_user_idx on public.measurements(user_id, measured_at desc);
 
+-- ── 가족 타임라인: 사진 좋아요 / 댓글 ──
+create table public.photo_likes (
+  photo_id   uuid not null references public.photos(id) on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (photo_id, user_id)
+);
+create table public.photo_comments (
+  id         uuid primary key default gen_random_uuid(),
+  photo_id   uuid not null references public.photos(id) on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  text       text not null,
+  created_at timestamptz not null default now()
+);
+create index photo_comments_photo_idx on public.photo_comments(photo_id, created_at);
+
 -- ── 웹 푸시 구독 ──
 create table public.push_subscriptions (
   id         uuid primary key default gen_random_uuid(),

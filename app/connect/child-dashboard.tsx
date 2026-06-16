@@ -110,13 +110,22 @@ function SeniorCard({ senior: s }: { senior: SeniorView }) {
         <StatBox label="게임" value={`${summary.games.plays}판`} sub={`${fmt(summary.games.points)}P`} />
       </div>
 
-      <Link
-        href={`/connect/${s.seniorId}/calendar`}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 10, height: 46, borderRadius: 14, border: "1px solid var(--c-line)", background: "var(--c-screen)", color: "var(--c-text)", fontSize: "calc(14px*var(--fs))", fontWeight: 800, textDecoration: "none" }}
-      >
-        <Icon name="calendar" size={20} color="var(--c-sub)" />
-        일정 관리
-      </Link>
+      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <Link
+          href={`/connect/${s.seniorId}/calendar`}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 46, borderRadius: 14, border: "1px solid var(--c-line)", background: "var(--c-screen)", color: "var(--c-text)", fontSize: "calc(14px*var(--fs))", fontWeight: 800, textDecoration: "none" }}
+        >
+          <Icon name="calendar" size={20} color="var(--c-sub)" />
+          일정
+        </Link>
+        <Link
+          href={`/connect/${s.seniorId}/album`}
+          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 46, borderRadius: 14, border: "1px solid var(--c-line)", background: "var(--c-screen)", color: "var(--c-text)", fontSize: "calc(14px*var(--fs))", fontWeight: 800, textDecoration: "none" }}
+        >
+          <Icon name="heart" size={20} color="var(--c-sub)" />
+          앨범
+        </Link>
+      </div>
 
       {/* 측정 최신값 */}
       {MEASURE_KINDS.some((m) => s.measurements[m.kind]) && (
