@@ -185,7 +185,11 @@ export default async function HomePage() {
             <span style={{ fontSize: "calc(13px*var(--fs))", fontWeight: 800, color: "#0066FF" }}>가족 소식</span>
           </div>
           <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 600, color: "var(--c-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {latest ? latest.text : "관리자와 연결하고 소식을 나눠요"}
+            {family.photoPath
+              ? (family.photoCaption ?? "사진")
+              : latest
+                ? latest.text
+                : "관리자와 연결하고 소식을 나눠요"}
           </div>
         </div>
         <Icon name="chevron-right" size={24} color="var(--c-faint)" />

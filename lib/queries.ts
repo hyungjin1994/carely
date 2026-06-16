@@ -167,13 +167,18 @@ export async function getFamilySummary(uid: string) {
 
   const { data: photo } = await supabase
     .from("photos")
-    .select("storage_path")
+    .select("storage_path, caption")
     .eq("owner_id", uid)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  return { link, latestMessage, photoPath: photo?.storage_path ?? null };
+  return {
+    link,
+    latestMessage,
+    photoPath: photo?.storage_path ?? null,
+    photoCaption: photo?.caption ?? null,
+  };
 }
 
 export type SeniorSummary = {
