@@ -45,7 +45,7 @@ export const GAMES: GameMeta[] = [
 ];
 
 /** 정답 1개당 기본 점수. 최종 점수 = correct * POINTS_PER * mult. */
-export const POINTS_PER = 8;
+export const POINTS_PER = 6;
 
 /** 하루 최대 포인트 (KST 자정 리셋). */
 export const DAILY_CAP = 1000;
