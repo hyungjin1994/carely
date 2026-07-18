@@ -87,7 +87,7 @@ export function seqPattern(len: number): number[] {
   return p;
 }
 export function seqStartLen(diff: Difficulty): number {
-  return diff === "easy" ? 3 : diff === "normal" ? 4 : 5;
+  return diff === "easy" ? 4 : diff === "normal" ? 5 : 6;
 }
 
 // ── 점수식 ──

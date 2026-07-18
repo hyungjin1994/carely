@@ -14,16 +14,16 @@ export type DiffConfig = {
 
 export const DIFF: Record<Difficulty, DiffConfig> = {
   easy: {
-    label: "쉬움", short: "하", mult: 1, detail: "문제 적게 · 천천히", color: "#00A63E",
-    n: { quiz: 4, math: 5, stroop: 6, mem: 3, seq: 3, word: 4 },
+    label: "쉬움", short: "하", mult: 1, detail: "적당한 양 · 천천히", color: "#00A63E",
+    n: { quiz: 8, math: 10, stroop: 12, mem: 8, seq: 5, word: 8 },
   },
   normal: {
-    label: "보통", short: "중", mult: 2, detail: "적당한 양 · 포인트 2배", color: "#FF9200",
-    n: { quiz: 6, math: 8, stroop: 9, mem: 6, seq: 4, word: 6 },
+    label: "보통", short: "중", mult: 2, detail: "문제 많이 · 포인트 2배", color: "#FF9200",
+    n: { quiz: 10, math: 14, stroop: 16, mem: 10, seq: 6, word: 10 },
   },
   hard: {
-    label: "어려움", short: "상", mult: 3, detail: "문제 많이 · 포인트 3배", color: "#E52222",
-    n: { quiz: 8, math: 10, stroop: 12, mem: 8, seq: 5, word: 8 },
+    label: "어려움", short: "상", mult: 3, detail: "아주 많이 · 포인트 3배", color: "#E52222",
+    n: { quiz: 12, math: 18, stroop: 20, mem: 12, seq: 7, word: 12 },
   },
 };
 
