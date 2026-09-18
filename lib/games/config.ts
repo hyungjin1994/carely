@@ -3,6 +3,17 @@
 export type GameId = "quiz" | "mem" | "word" | "seq" | "math" | "stroop";
 export type Difficulty = "easy" | "normal" | "hard";
 
+/** 보드 구조가 같은 4지선다 게임 — 문제 은행에서 출제되므로 서버에서 뽑는다. */
+export type ChoiceGameId = "quiz" | "word";
+
+/**
+ * 클라이언트로 내려가는 한 문제.
+ * qid(출제 이력 키)는 클라가 쓸 일이 없어 빼고 내린다.
+ * answer 는 즉시 정답 피드백(OptionButton)을 주려면 클라에 있어야 한다 —
+ * 채점 권위는 별개로 submitGameResult 가 서버에서 다시 계산한다.
+ */
+export type ChoiceRound = { prompt: string; options: string[]; answer: number };
+
 export type DiffConfig = {
   label: string;
   short: string;

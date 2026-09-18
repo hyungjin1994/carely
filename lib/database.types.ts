@@ -172,6 +172,14 @@ export type Notification = {
   channel: "push" | "email";
 };
 
+/** 문제 출제 이력. qid 는 lib/games/quiz-bank.ts 가 만드는 문항 식별자. */
+export type QuizSeen = {
+  user_id: string;
+  qid: string;
+  seen_at: string;
+  seen_count: number;
+};
+
 type Table<R, I = Partial<R>, U = Partial<R>> = {
   Row: R;
   Insert: I;
@@ -198,6 +206,7 @@ export type Database = {
       measurements: Table<Measurement>;
       push_subscriptions: Table<PushSubscription>;
       notifications: Table<Notification>;
+      quiz_seen: Table<QuizSeen>;
     };
     Functions: {
       award_points: {
@@ -212,6 +221,7 @@ export type Database = {
       decide_exchange: { Args: { p_id: string; p_approve: boolean }; Returns: undefined };
       complete_exchange: { Args: { p_id: string }; Returns: undefined };
       is_linked: { Args: { a: string; b: string }; Returns: boolean };
+      mark_quiz_seen: { Args: { p_qids: string[] }; Returns: undefined };
     };
   };
 };
