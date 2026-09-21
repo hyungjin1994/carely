@@ -1,7 +1,13 @@
 import { GamesList } from "./games-list";
-import { getTodayGamePoints } from "@/lib/queries";
+import { getTodayGamePoints, getLastGameDifficulty } from "@/lib/queries";
+
+// 인증·사용자별 데이터 — 항상 동적.
+export const dynamic = "force-dynamic";
 
 export default async function GamesPage() {
-  const todayByGame = await getTodayGamePoints();
-  return <GamesList todayByGame={todayByGame} />;
+  const [todayByGame, lastDiff] = await Promise.all([
+    getTodayGamePoints(),
+    getLastGameDifficulty(),
+  ]);
+  return <GamesList todayByGame={todayByGame} lastDiff={lastDiff} />;
 }

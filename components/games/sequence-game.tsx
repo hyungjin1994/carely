@@ -8,6 +8,11 @@ import { seqPattern, seqStartLen, SEQPADS } from "@/lib/games/engine";
 
 type Phase = "show" | "input" | "done";
 
+/** 한 칸이 켜져 있는 시간(ms). */
+const PAD_ON_MS = 560;
+/** 다음 칸이 켜지기 전 꺼져 있는 시간(ms). 같은 칸 연속은 seqPattern 이 막는다. */
+const PAD_GAP_MS = 240;
+
 export function SequenceGame({
   difficulty,
   onFinish,
@@ -25,46 +30,46 @@ export function SequenceGame({
   const [phase, setPhase] = useState<Phase>("show");
   const [active, setActive] = useState(-1);
 
-  const patternRef = useRef(pattern);
-  patternRef.current = pattern;
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const clearTimers = () => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  };
 
-  // 새 라운드마다 시퀀스 점등 후 입력 단계로.
+  // 패턴이 바뀌면(= 새 라운드) 시퀀스를 점등한다.
+  //
+  // setState 는 전부 타이머 콜백 안에서만 호출한다. 이펙트 본문에서 동기로
+  // 호출하면 cascading render 가 되고 react-hooks/set-state-in-effect 에 걸린다.
+  // 그래서 상태 초기화(phase/input/active)는 라운드를 넘기는 tap 쪽에서 한다.
+  // pattern 을 ref 로 우회하지 않고 그대로 의존성에 둔다 — 렌더 중 ref 를 쓰면
+  // react-hooks/refs 에 걸리고, pattern 은 라운드가 넘어갈 때만 바뀌므로
+  // [round] 와 결과가 같다.
   useEffect(() => {
-    setPhase("show");
-    setActive(-1);
-    setInput([]);
-    const pat = patternRef.current;
     let i = 0;
     const step = () => {
-      if (i >= pat.length) {
+      if (i >= pattern.length) {
         setPhase("input");
         return;
       }
-      setActive(pat[i]);
+      setActive(pattern[i]);
       const t1 = setTimeout(() => {
         setActive(-1);
         i++;
-        const t2 = setTimeout(step, 240);
+        const t2 = setTimeout(step, PAD_GAP_MS);
         timers.current.push(t2);
-      }, 560);
+      }, PAD_ON_MS);
       timers.current.push(t1);
     };
     const t0 = setTimeout(step, 600);
     timers.current.push(t0);
-    return clearTimers;
-  }, [round]);
+    return () => {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+    };
+  }, [pattern]);
 
   const tap = (p: number) => {
     if (phase !== "input") return;
     const nextInput = [...input, p];
     const idx = nextInput.length - 1;
 
-    if (patternRef.current[idx] !== p) {
+    if (pattern[idx] !== p) {
       // 틀림 → 종료
       setInput(nextInput);
       setPhase("done");
@@ -73,7 +78,7 @@ export function SequenceGame({
       return;
     }
 
-    if (nextInput.length === patternRef.current.length) {
+    if (nextInput.length === pattern.length) {
       const nextCorrect = correct + 1;
       setCorrect(nextCorrect);
       if (round + 1 >= rounds) {
@@ -82,11 +87,13 @@ export function SequenceGame({
         timers.current.push(t);
         return;
       }
-      // 다음 라운드: 길이 +1
-      const newPattern = seqPattern(patternRef.current.length + 1);
-      patternRef.current = newPattern;
-      setPattern(newPattern);
+      // 다음 라운드: 길이 +1.
+      // 상태 초기화를 여기서 한다(이펙트 본문에서 하면 lint 위반).
       setRound((r) => r + 1);
+      setPattern(seqPattern(pattern.length + 1));
+      setInput([]);
+      setActive(-1);
+      setPhase("show");
     } else {
       setInput(nextInput);
     }

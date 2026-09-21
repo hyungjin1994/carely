@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate, kstHour } from "@/lib/time";
-import { DAILY_CAP } from "@/lib/games/config";
+import { DAILY_CAP, GAME_IDS, type Difficulty } from "@/lib/games/config";
 import { getSignedPhotoUrls } from "@/lib/storage";
 import type { MeasurementKind } from "@/lib/database.types";
 
@@ -35,6 +35,46 @@ async function uidFor(
   if (userId) return userId;
   const { data } = await supabase.auth.getUser();
   return data.user?.id ?? null;
+}
+
+/**
+ * 게임별 마지막으로 플레이한 난이도.
+ *
+ * 전에는 게임 목록에서 들어가면 늘 쉬움부터 시작해서, 어려움을 하려면 매번
+ * 쉬움 → 보통 → 어려움 3판을 거쳐야 했다. game_scores 에 difficulty 가 이미
+ * 기록되고 있으므로 DB 변경 없이 마지막 단계를 알려줄 수 있다.
+ *
+ * 게임 수가 6개뿐이라 게임별로 1건씩 병렬 조회한다 — 최근 N건을 받아 추리는
+ * 방식은 한 게임만 많이 하면 다른 게임이 밀려나 안 보인다.
+ */
+const DIFFS: Difficulty[] = ["easy", "normal", "hard"];
+
+export async function getLastGameDifficulty(
+  userId?: string,
+): Promise<Record<string, Difficulty>> {
+  const supabase = await createClient();
+  const uid = await uidFor(supabase, userId);
+  if (!uid) return {};
+
+  const rows = await Promise.all(
+    GAME_IDS.map(async (id) => {
+      const { data } = await supabase
+        .from("game_scores")
+        .select("difficulty")
+        .eq("user_id", uid)
+        .eq("game_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return [id, data?.difficulty] as const;
+    }),
+  );
+
+  const out: Record<string, Difficulty> = {};
+  for (const [id, diff] of rows) {
+    if (diff && DIFFS.includes(diff as Difficulty)) out[id] = diff as Difficulty;
+  }
+  return out;
 }
 
 /** 포인트 잔액 = point_ledger delta 합. */

@@ -143,7 +143,10 @@ export function MemoryGame({
               key={c.key}
               onClick={() => flip(i)}
               aria-label={up ? "뒤집힌 카드" : "카드 뒤집기"}
-              style={{ aspectRatio: "3/4", borderRadius: 16, border: "none", padding: 0, perspective: "600px", background: "transparent" }}
+              // 정사각형이어야 어려움(4×6=24장)이 스크롤 없이 한 화면에 들어온다.
+              // 3/4 비율이면 390px 폰에서 약 96px 넘쳐서, 미리보기 중 아래 두 줄이
+              // 화면 밖에 있게 된다 — 그러면 "모두에게 같은 정보"라는 전제가 깨진다.
+              style={{ aspectRatio: "1/1", borderRadius: 16, border: "none", padding: 0, perspective: "600px", background: "transparent" }}
             >
               <div
                 style={{
