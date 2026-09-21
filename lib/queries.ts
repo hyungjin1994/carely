@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate, kstHour } from "@/lib/time";
 import { DAILY_CAP, GAME_IDS, type Difficulty } from "@/lib/games/config";
 import { getSignedPhotoUrls } from "@/lib/storage";
+import { todayHabit } from "@/lib/habits";
 import type { MeasurementKind } from "@/lib/database.types";
 
 export type TodoItem = {
@@ -35,6 +36,65 @@ async function uidFor(
   if (userId) return userId;
   const { data } = await supabase.auth.getUser();
   return data.user?.id ?? null;
+}
+
+export type HabitStatus = {
+  habitId: string;
+  title: string;
+  why: string | null;
+  categoryLabel: string;
+  color: string;
+  icon: string;
+  done: boolean;
+  /** 오늘까지 이어진 연속 실천 일수. 오늘 안 했으면 어제까지의 연속. */
+  streak: number;
+};
+
+/**
+ * 오늘의 한 가지 + 실천 여부 + 연속 일수.
+ * 행동은 날짜로 결정되므로(lib/habits.ts) 서버·클라가 같은 값을 본다.
+ */
+export async function getTodayHabit(userId?: string): Promise<HabitStatus> {
+  const { habit, category } = todayHabit();
+  const base: HabitStatus = {
+    habitId: habit.id,
+    title: habit.title,
+    why: habit.why ?? null,
+    categoryLabel: category.label,
+    color: category.color,
+    icon: category.icon,
+    done: false,
+    streak: 0,
+  };
+
+  const supabase = await createClient();
+  const uid = await uidFor(supabase, userId);
+  if (!uid) return base;
+
+  const today = formatKstIsoDate();
+  // 연속 일수를 세려면 최근 며칠이 필요하다. 60일이면 충분.
+  const { data } = await supabase
+    .from("daily_habits")
+    .select("date")
+    .eq("user_id", uid)
+    .order("date", { ascending: false })
+    .limit(60);
+
+  const dates = new Set((data ?? []).map((r) => r.date));
+  const done = dates.has(today);
+
+  // 오늘 했으면 오늘부터, 안 했으면 어제부터 거꾸로 센다.
+  let streak = 0;
+  const cursor = new Date(`${today}T00:00:00Z`);
+  if (!done) cursor.setUTCDate(cursor.getUTCDate() - 1);
+  for (let i = 0; i < 60; i++) {
+    const key = cursor.toISOString().slice(0, 10);
+    if (!dates.has(key)) break;
+    streak++;
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+
+  return { ...base, done, streak };
 }
 
 export type UnreadNotice = {

@@ -1,24 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ensureProfile } from "@/lib/auth/dal";
-import { getTodayTodos, getPointsSummary, getFamilySummary } from "@/lib/queries";
+import { getTodayTodos, getPointsSummary, getFamilySummary, getTodayHabit } from "@/lib/queries";
 import { getTodayRecall } from "@/lib/recall/queries";
 import { getSignedPhotoUrl } from "@/lib/storage";
 import { greeting, formatKstHeader } from "@/lib/time";
 import { fmt } from "@/lib/utils";
 import { Icon } from "@/components/common/icon";
 import { TodayTodos } from "./today-todos";
+import { HabitCard } from "./habit-card";
 
 // 인증·사용자별 데이터 — 항상 동적.
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const profile = await ensureProfile();
-  const [todos, points, family, recall] = await Promise.all([
+  const [todos, points, family, recall, habit] = await Promise.all([
     getTodayTodos(),
     getPointsSummary(),
     getFamilySummary(profile.id),
     getTodayRecall(profile.id),
+    getTodayHabit(),
   ]);
   const photoUrl = await getSignedPhotoUrl(family.photoPath);
 
@@ -102,6 +104,10 @@ export default async function HomePage() {
         </Link>
         <TodayTodos items={todos} />
       </div>
+
+      {/* 오늘의 한 가지 — 생활 습관 축. 실천해도 카드를 숨기지 않는다.
+          연속 일수를 보는 게 다음 날 다시 하게 만드는 힘이라서다. */}
+      <HabitCard habit={habit} />
 
       {/* 오늘의 질문 — 탭바가 이미 6개라 늘리지 않고 홈에서만 진입한다.
           답하지 않은 날에만 띄워서 "매일 하나"라는 리듬을 만든다. */}

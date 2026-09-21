@@ -174,6 +174,14 @@ export type Notification = {
   read_at: string | null;
 };
 
+/** 오늘의 한 가지 실천 기록. habit_id 는 lib/habits.ts 의 행동 id. */
+export type DailyHabit = {
+  user_id: string;
+  date: string;
+  habit_id: string;
+  done_at: string;
+};
+
 /** 게임 레벨(1~30). 레벨을 쓰는 게임은 lib/games/levels.ts 의 LEVELED_GAMES. */
 export type GameLevel = {
   user_id: string;
@@ -243,6 +251,7 @@ export type Database = {
       family_questions: Table<FamilyQuestion>;
       family_answers: Table<FamilyAnswer>;
       game_levels: Table<GameLevel>;
+      daily_habits: Table<DailyHabit>;
     };
     Functions: {
       award_points: {
