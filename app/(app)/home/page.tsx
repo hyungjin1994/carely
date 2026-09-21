@@ -1,18 +1,24 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ensureProfile } from "@/lib/auth/dal";
 import { getTodayTodos, getPointsSummary, getFamilySummary } from "@/lib/queries";
+import { getTodayRecall } from "@/lib/recall/queries";
 import { getSignedPhotoUrl } from "@/lib/storage";
 import { greeting, formatKstHeader } from "@/lib/time";
 import { fmt } from "@/lib/utils";
 import { Icon } from "@/components/common/icon";
 import { TodayTodos } from "./today-todos";
 
+// 인증·사용자별 데이터 — 항상 동적.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const profile = await ensureProfile();
-  const [todos, points, family] = await Promise.all([
+  const [todos, points, family, recall] = await Promise.all([
     getTodayTodos(),
     getPointsSummary(),
     getFamilySummary(profile.id),
+    getTodayRecall(profile.id),
   ]);
   const photoUrl = await getSignedPhotoUrl(family.photoPath);
 
@@ -97,6 +103,43 @@ export default async function HomePage() {
         <TodayTodos items={todos} />
       </div>
 
+      {/* 오늘의 질문 — 탭바가 이미 6개라 늘리지 않고 홈에서만 진입한다.
+          답하지 않은 날에만 띄워서 "매일 하나"라는 리듬을 만든다. */}
+      {recall && !recall.todayAnswer && (
+        <Link
+          href="/recall"
+          style={{
+            borderRadius: 24,
+            padding: 20,
+            background: "linear-gradient(135deg,#E846CD,#FF5E00)",
+            color: "#fff",
+            boxShadow: "0 8px 20px rgba(232,70,205,.22)",
+            textDecoration: "none",
+            display: "block",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <Icon name="heart-fill" size={22} color="#fff" />
+            <span style={{ fontSize: "calc(14px*var(--fs))", fontWeight: 700, opacity: 0.95 }}>오늘의 질문</span>
+          </div>
+          <div
+            style={{
+              fontSize: "calc(21px*var(--fs))",
+              fontWeight: 800,
+              letterSpacing: "-0.01em",
+              marginTop: 8,
+              lineHeight: 1.45,
+            }}
+          >
+            {recall.question.prompt}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 12, fontSize: "calc(14px*var(--fs))", fontWeight: 800, opacity: 0.95 }}>
+            이야기 들려주기
+            <Icon name="chevron-right" size={18} color="#fff" />
+          </div>
+        </Link>
+      )}
+
       {/* 포인트 */}
       <Link
         href="/points"
@@ -176,11 +219,26 @@ export default async function HomePage() {
             height: 56,
             borderRadius: 16,
             flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
             background: showPhoto && photoUrl
-              ? `center/cover no-repeat url(${photoUrl})`
+              ? undefined
               : "linear-gradient(135deg,#FF9C63,#FF5E00)",
           }}
-        />
+        >
+          {showPhoto && photoUrl && (
+            // Supabase signed URL 은 매번 토큰이 바뀌어 최적화 캐시 효과가 없으므로 unoptimized.
+            // 이득은 lazy load + decoding 비동기.
+            <Image
+              src={photoUrl}
+              alt="가족 사진"
+              fill
+              sizes="56px"
+              unoptimized
+              style={{ objectFit: "cover" }}
+            />
+          )}
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
             <Icon name="persons" size={18} color="#0066FF" />

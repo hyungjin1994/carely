@@ -29,6 +29,8 @@ export type SeniorView = {
   photoUrl: string | null;
   photoCaption: string | null;
   feed: Feed[];
+  /** 답장을 기다리는 회상 답변 수. 어머니가 답했는데 반응이 없는 상태를 눈에 보이게 한다. */
+  unrepliedRecall: number;
 };
 
 export function ManagerDashboard({ seniors }: { seniors: SeniorView[] }) {
@@ -128,6 +130,36 @@ function SeniorCard({ senior: s }: { senior: SeniorView }) {
           앨범
         </Link>
       </div>
+
+      {/* 회상 질문 — 미답장이 있으면 눈에 띄게. 답했는데 반응 없는 상태가 이 기능의
+          가장 나쁜 실패라서 대시보드에서 바로 보이게 한다. */}
+      <Link
+        href={`/connect/${s.seniorId}/recall`}
+        style={{
+          marginTop: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          height: 46,
+          borderRadius: 14,
+          padding: "0 14px",
+          border: s.unrepliedRecall > 0 ? "1px solid #FFE0B2" : "1px solid var(--c-line)",
+          background: s.unrepliedRecall > 0 ? "#FFF6E9" : "var(--c-screen)",
+          color: s.unrepliedRecall > 0 ? "#9C5800" : "var(--c-text)",
+          fontSize: "calc(14px*var(--fs))",
+          fontWeight: 800,
+          textDecoration: "none",
+        }}
+      >
+        <Icon name="pencil" size={20} color={s.unrepliedRecall > 0 ? "#FF9200" : "var(--c-sub)"} />
+        <span style={{ flex: 1 }}>추억 이야기</span>
+        {s.unrepliedRecall > 0 && (
+          <span style={{ fontSize: "calc(13px*var(--fs))", fontWeight: 800, background: "#FF9200", color: "#fff", padding: "4px 10px", borderRadius: 999 }}>
+            답장 {s.unrepliedRecall}
+          </span>
+        )}
+        <Icon name="chevron-right" size={20} color={s.unrepliedRecall > 0 ? "#C98A2E" : "var(--c-faint)"} />
+      </Link>
 
       {/* 측정 최신값 */}
       {MEASURE_KINDS.some((m) => s.measurements[m.kind]) && (

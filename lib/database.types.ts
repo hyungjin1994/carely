@@ -172,6 +172,29 @@ export type Notification = {
   channel: "push" | "email";
 };
 
+/** 자녀가 낸 회상 질문. month 는 제철 출제용 힌트(1~12), null 이면 아무 때나. */
+export type FamilyQuestion = {
+  id: string;
+  senior_id: string;
+  author_id: string;
+  prompt: string;
+  month: number | null;
+  active: boolean;
+  created_at: string;
+};
+
+/** 어머니 답변 + 자녀 답장. text 가 null 이면 "질문은 봤지만 답은 안 하신" 것. */
+export type FamilyAnswer = {
+  id: string;
+  question_id: string;
+  senior_id: string;
+  text: string | null;
+  answered_at: string;
+  replied_by: string | null;
+  reply_text: string | null;
+  replied_at: string | null;
+};
+
 /** 문제 출제 이력. qid 는 lib/games/quiz-bank.ts 가 만드는 문항 식별자. */
 export type QuizSeen = {
   user_id: string;
@@ -207,6 +230,8 @@ export type Database = {
       push_subscriptions: Table<PushSubscription>;
       notifications: Table<Notification>;
       quiz_seen: Table<QuizSeen>;
+      family_questions: Table<FamilyQuestion>;
+      family_answers: Table<FamilyAnswer>;
     };
     Functions: {
       award_points: {
