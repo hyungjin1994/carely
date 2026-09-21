@@ -88,3 +88,19 @@ export async function markAllNoticesRead(): Promise<ConnectState> {
   revalidatePath("/connect");
   return { ok: true };
 }
+
+/**
+ * 관리자 알림 수신 여부. sendPushToUser 가 profiles.notify_on 을 보고
+ * 꺼져 있으면 건너뛰므로, 구독만 해두고 이 값이 false 면 푸시가 안 간다.
+ */
+export async function setManagerNotify(on: boolean): Promise<ConnectState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요해요" };
+  const { error } = await supabase.from("profiles").update({ notify_on: on }).eq("id", user.id);
+  if (error) return { error: "설정을 저장하지 못했어요" };
+  revalidatePath("/connect");
+  return { ok: true };
+}

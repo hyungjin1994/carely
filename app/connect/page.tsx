@@ -73,5 +73,18 @@ export default async function ConnectPage() {
   );
 
   const notices = await getUnreadNotices();
-  return <ManagerDashboard seniors={seniors} notices={notices} />;
+  // 알림 켜기 배너 표시 여부. 구독이 없으면 푸시를 보낼 대상이 없다.
+  const { count: subCount } = await supabase
+    .from("push_subscriptions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id);
+
+  return (
+    <ManagerDashboard
+      seniors={seniors}
+      notices={notices}
+      notifyOn={profile.notify_on}
+      subscribed={(subCount ?? 0) > 0}
+    />
+  );
 }
