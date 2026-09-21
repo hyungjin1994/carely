@@ -9,7 +9,7 @@ import { Icon } from "@/components/common/icon";
 import { DIFF, getGame, type ChoiceGameId, type ChoiceRound, type Difficulty } from "@/lib/games/config";
 
 /** 3단계 게임의 헤더 부제. */
-export function tierSub(d: Difficulty): string {
+function tierSub(d: Difficulty): string {
   return `${DIFF[d].label} · 포인트 ${DIFF[d].mult}배`;
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { inputStyle } from "@/components/ui/styles";
 import { useRouter } from "next/navigation";
 import { SubHeader } from "@/components/common/sub-header";
 import { BottomSheet } from "@/components/common/bottom-sheet";
@@ -22,19 +23,6 @@ export type MeasureRow = {
   measured_at: string;
 };
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  border: "2px solid var(--c-line)",
-  borderRadius: 14,
-  padding: "0 16px",
-  height: 58,
-  fontSize: "calc(18px*var(--fs))",
-  outline: "none",
-  fontFamily: "inherit",
-  background: "var(--c-card)",
-  color: "var(--c-text)",
-  boxSizing: "border-box",
-};
 
 export function MeasureView({ recent }: { recent: MeasureRow[] }) {
   const router = useRouter();

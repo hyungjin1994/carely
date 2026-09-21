@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { answerRecall } from "@/app/(app)/recall/actions";
 import { showToast } from "@/components/common/toast";
+import { textareaStyle } from "@/components/ui/styles";
 
 /**
  * 답변 입력. 큰 글씨·넉넉한 높이로 고령자 입력을 배려한다.
@@ -29,20 +30,7 @@ export function AnswerForm({ questionId }: { questionId: string }) {
         placeholder="기억나는 대로 편하게 적어주세요"
         rows={6}
         aria-label="답변"
-        style={{
-          width: "100%",
-          boxSizing: "border-box",
-          border: "2px solid var(--c-line)",
-          borderRadius: 18,
-          padding: "16px 18px",
-          fontSize: "calc(19px*var(--fs))",
-          lineHeight: 1.6,
-          fontFamily: "inherit",
-          background: "var(--c-card)",
-          color: "var(--c-text)",
-          outline: "none",
-          resize: "none",
-        }}
+        style={textareaStyle}
       />
 
       <button

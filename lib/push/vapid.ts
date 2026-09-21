@@ -11,6 +11,3 @@ export function getVapidConfig() {
   return { publicKey, privateKey, subject };
 }
 
-export function isPushConfigured() {
-  return getVapidConfig() !== null;
-}

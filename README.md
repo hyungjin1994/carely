@@ -3,7 +3,10 @@
 엄마(시니어)와 자녀가 함께 어머니 건강을 챙기는 모바일 PWA.
 어머니는 두뇌게임 6종으로 포인트를 모으고, 약·일정을 관리하고, 자녀와 사진·메시지를 나누고, 포인트를 환전 신청합니다. 자녀는 `/connect`에서 연결해 환전을 승인하고 소식을 주고받습니다.
 
-- **스택**: Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Supabase(Postgres + Auth + Storage + RLS) · Web Push(VAPID) · Vercel
+- **스택**: Next.js 16 (App Router) · React 19 · TypeScript · Supabase(Postgres + Auth + Storage + RLS) · Web Push(VAPID) · Vercel
+- **스타일**: Tailwind 를 설치했지만 유틸리티 클래스는 쓰지 않는다. 시안을 그대로
+  옮기느라 전부 인라인 `style` 이고, `@import "tailwindcss"` 는 CSS 리셋(preflight)
+  용도로만 남아 있다. 색·간격은 `app/globals.css` 의 CSS 변수(`--c-*`, `--fs`)를 쓴다
 - **디자인 기준**: `docs/handoff/` (Wanted DS 토큰, `Carely.dc.html` 시안)
 - 시니어 친화: 글자배율 3단계(×1.0/1.18/1.4), 고대비 모드, 큰 터치영역, 이모지 금지(아이콘만)
 
@@ -47,7 +50,12 @@ npx web-push generate-vapid-keys
 
 1. 새 Vercel 프로젝트로 이 레포 import.
 2. **Environment Variables** 에 `.env.local` 의 모든 키 + `CRON_SECRET`(임의 문자열) 등록.
-3. 리전은 `vercel.json` 의 `icn1`(서울) 사용. 크론 `*/15 * * * *` 가 `/api/cron/notify` 호출(Vercel 이 `Authorization: Bearer $CRON_SECRET` 전송).
+3. 리전은 `vercel.json` 의 `icn1`(서울) 사용. 크론은 `0 23 * * *`(UTC) = KST 아침 8시
+   **하루 1회** 로 `/api/cron/notify` 를 호출한다(Vercel 이 `Authorization: Bearer $CRON_SECRET` 전송).
+   Hobby 플랜은 크론 빈도가 제한되므로 예약 알림(약·일정)은 최대 24시간 늦을 수 있다.
+   더 자주 필요하면 cron-job.org 같은 외부 스케줄러로 같은 URL 을 호출하면 된다.
+   **환전 신청처럼 사건 발생 시점에 보내면 되는 알림은 크론을 거치지 않고**
+   서버 액션이 바로 발송하므로 지연이 없다.
 4. 배포 후 Supabase Auth → URL Configuration 에 프로덕션 도메인 추가.
 5. PWA: 모바일 브라우저에서 "홈 화면에 추가" 로 설치형 앱처럼 사용.
 

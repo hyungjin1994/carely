@@ -8,13 +8,6 @@ export const SLOT_TIME: Record<string, [number, number]> = {
   "자기 전": [21, 30],
 };
 
-export const SLOT_ORDER: Record<string, number> = {
-  아침: 0,
-  점심: 1,
-  저녁: 2,
-  "자기 전": 3,
-};
-
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 /** KST 의 (오늘+dayOffset) 날짜의 hh:mm 을 가리키는 UTC Date. */
@@ -30,12 +23,6 @@ function kstSlotToUtc(now: Date, dayOffset: number, hh: number, mm: number): Dat
 }
 
 /** 시간대 라벨 → KST hour (홈 화면 슬롯 복원용, 옛 데이터 호환). */
-export function hourToSlot(kstHour: number): string {
-  if (kstHour < 11) return "아침";
-  if (kstHour < 15) return "점심";
-  if (kstHour < 21) return "저녁";
-  return "자기 전";
-}
 
 /** "HH:MM" 또는 옛 슬롯 라벨 → [시, 분] (KST). 형식이 틀리면 null. */
 export function parseMedTime(t: string): [number, number] | null {

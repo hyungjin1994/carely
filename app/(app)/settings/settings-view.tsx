@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { rowCardStyle } from "@/components/ui/styles";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SubHeader } from "@/components/common/sub-header";
@@ -24,12 +25,6 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   );
 }
 
-const rowCard: React.CSSProperties = {
-  background: "var(--c-card)",
-  border: "1px solid var(--c-line)",
-  borderRadius: 18,
-  padding: 18,
-};
 
 export function SettingsView({
   name,
@@ -90,7 +85,7 @@ export function SettingsView({
       <SubHeader title="설정" href="/home" />
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {/* 이름 */}
-        <div style={rowCard}>
+        <div style={rowCardStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 54, height: 54, borderRadius: "50%", background: "linear-gradient(135deg,#0066FF,#5B37ED)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="person-fill" size={28} color="#fff" />
@@ -115,7 +110,7 @@ export function SettingsView({
         </div>
 
         {/* 글자 크기 */}
-        <div style={rowCard}>
+        <div style={rowCardStyle}>
           <div style={{ fontSize: "calc(17px*var(--fs))", fontWeight: 800, color: "var(--c-text)", marginBottom: 4 }}>글자 크기</div>
           <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginBottom: 14 }}>모든 화면에 바로 적용돼요</div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -131,7 +126,7 @@ export function SettingsView({
         </div>
 
         {/* 고대비 */}
-        <div style={rowCard}>
+        <div style={rowCardStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: "#F2ECFE", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="moon" size={24} color="#5B37ED" />
@@ -145,7 +140,7 @@ export function SettingsView({
         </div>
 
         {/* 알림 */}
-        <div style={rowCard}>
+        <div style={rowCardStyle}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: "#FFF6E9", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="bell" size={24} color="#FF9200" />
@@ -165,7 +160,7 @@ export function SettingsView({
         </div>
 
         {/* 건강·생활 정보 */}
-        <Link href="/onboarding" style={{ ...rowCard, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
+        <Link href="/onboarding" style={{ ...rowCardStyle, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, background: "#EAF2FE", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="person-fill" size={24} color="#0066FF" />
           </div>
@@ -177,7 +172,7 @@ export function SettingsView({
         </Link>
 
         {/* 약 관리 */}
-        <Link href="/meds" style={{ ...rowCard, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
+        <Link href="/meds" style={{ ...rowCardStyle, display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, background: "#EAFBF0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="pill" size={24} color="#00A63E" />
           </div>

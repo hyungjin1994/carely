@@ -12,7 +12,3 @@ export function idToEmail(loginId: string): string {
   return `${loginId.trim().toLowerCase()}@${ID_EMAIL_DOMAIN}`;
 }
 
-/** 내부 이메일 → 표시용 아이디 (@ 앞부분). */
-export function emailToId(email: string | null | undefined): string {
-  return (email ?? "").split("@")[0];
-}

@@ -24,9 +24,5 @@ export const SignupSchema = z
     message: "비밀번호가 일치하지 않아요",
   });
 
-export const ConnectCodeSchema = z.object({
-  code: z.string().trim().min(4, "코드 4자리를 입력하세요").max(8),
-});
-
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type SignupInput = z.infer<typeof SignupSchema>;

@@ -187,13 +187,20 @@ export async function getLastGameDifficulty(
   return out;
 }
 
-/** 포인트 잔액 = point_ledger delta 합. */
+/**
+ * 포인트 잔액 = point_ledger delta 합.
+ *
+ * 집계는 DB 에서 한다(0021). 전에는 행을 전부 받아 JS 에서 더했는데,
+ * PostgREST 가 기본 1,000행에서 잘라서 원장이 그보다 커지면 잔액이 조용히
+ * 틀리게 나왔다. 행이 쌓일수록 느려지는 문제도 있었다.
+ */
 export async function getBalance(userId?: string): Promise<number> {
   const supabase = await createClient();
   const uid = await uidFor(supabase, userId);
   if (!uid) return 0;
-  const { data } = await supabase.from("point_ledger").select("delta").eq("user_id", uid);
-  return (data ?? []).reduce((sum, r) => sum + (r.delta ?? 0), 0);
+  const { data, error } = await supabase.rpc("point_balance", { p_user: uid });
+  if (error) return 0;
+  return (data as number) ?? 0;
 }
 
 /** KST 오늘 누적 포인트. */

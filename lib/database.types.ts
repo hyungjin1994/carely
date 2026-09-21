@@ -268,6 +268,7 @@ export type Database = {
       is_linked: { Args: { a: string; b: string }; Returns: boolean };
       mark_quiz_seen: { Args: { p_qids: string[] }; Returns: undefined };
       notify_managers: { Args: { p_kind: string; p_title: string; p_body: string }; Returns: number };
+      point_balance: { Args: { p_user: string }; Returns: number };
     };
   };
 };
