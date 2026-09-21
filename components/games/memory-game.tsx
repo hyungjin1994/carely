@@ -25,7 +25,7 @@ export function MemoryGame({
   const meta = getGame("mem");
   const n = DIFF[difficulty].n.mem;
   const previewMs = memPreviewMs(n, difficulty);
-  const moveLimit = memMoveLimit(n);
+  const moveLimit = memMoveLimit(n, difficulty);
 
   const [deck, setDeck] = useState<MemCard[]>(() => memDeck(n));
   const [phase, setPhase] = useState<"preview" | "play">("preview");

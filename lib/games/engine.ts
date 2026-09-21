@@ -1,6 +1,6 @@
 // 순수 게임 로직 — 시안 Carely.dc.html (363–385, 454–458) 그대로 이식. React 비의존.
 
-import { DIFF, MEM, POINTS_PER, type Difficulty, type GameId } from "@/lib/games/config";
+import { DIFF, MEM, POINTS_PER, STROOP, type Difficulty, type GameId } from "@/lib/games/config";
 import {
   SCOLORS, MEMFACES, SEQPADS,
   type StroopColor,
@@ -56,12 +56,28 @@ export function mathRound(diff: Difficulty): MathRound {
 }
 
 // ── 색깔 (스트룹) ──
-export type StroopRound = { word: string; ink: StroopColor; opts: StroopColor[] };
-export function stroopRound(): StroopRound {
-  const word = SCOLORS[Math.floor(Math.random() * SCOLORS.length)];
+export type StroopRound = {
+  word: string;
+  ink: StroopColor;
+  opts: StroopColor[];
+  /** 글자와 잉크가 같은 색인 시행. 간섭이 없어 쉽다. */
+  congruent: boolean;
+};
+
+export function stroopRound(diff: Difficulty): StroopRound {
   const ink = SCOLORS[Math.floor(Math.random() * SCOLORS.length)];
-  const opts = shuffle(SCOLORS);
-  return { word: word.name, ink, opts };
+  const congruent = Math.random() < STROOP.congruentRatio[diff];
+  const others = SCOLORS.filter((c) => c.hex !== ink.hex);
+  const word = congruent ? ink : others[Math.floor(Math.random() * others.length)];
+
+  // 보기에 정답(잉크색)과 유혹(글자가 지칭하는 색)을 반드시 넣는다.
+  // 유혹이 빠지면 간섭이 생기지 않아 스트룹이 아니게 된다.
+  const must = congruent ? [ink] : [ink, word];
+  const filler = shuffle(SCOLORS.filter((c) => !must.some((m) => m.hex === c.hex)));
+  const count = Math.min(Math.max(STROOP.optionCount[diff], must.length), SCOLORS.length);
+  const opts = shuffle([...must, ...filler.slice(0, count - must.length)]);
+
+  return { word: word.name, ink, opts, congruent };
 }
 
 // ── 카드 짝맞추기 덱 ──
@@ -83,8 +99,8 @@ export function memPreviewMs(pairs: number, diff: Difficulty): number {
 }
 
 /** 뒤집기 제한. 도달하면 판이 끝나지만 맞춘 짝만큼은 점수를 받는다. */
-export function memMoveLimit(pairs: number): number {
-  return Math.ceil(pairs * MEM.moveLimitPerPair);
+export function memMoveLimit(pairs: number, diff: Difficulty): number {
+  return Math.ceil(pairs * MEM.moveLimitPerPair[diff]);
 }
 
 // ── 순서 기억 패턴 (0-3 인덱스) ──
