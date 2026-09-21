@@ -5,22 +5,23 @@ import { GameShell } from "@/components/games/game-shell";
 import { OptionButton } from "@/components/games/option-button";
 import { NextButton } from "@/components/games/choice-game";
 import { Card } from "@/components/ui/card";
-import { DIFF, type Difficulty } from "@/lib/games/config";
 import { mathRound, type MathRound } from "@/lib/games/engine";
+import { levelMult, mathParams } from "@/lib/games/levels";
 
 export function MathGame({
-  difficulty,
+  level,
   onFinish,
 }: {
-  difficulty: Difficulty;
+  level: number;
   onFinish: (correct: number) => void;
 }) {
-  const n = DIFF[difficulty].n.math;
+  const n = mathParams(level).rounds;
+  const sub = `${level}단계 · 포인트 ${levelMult(level)}배`;
   const [round, setRound] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [sel, setSel] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
-  const [cur, setCur] = useState<MathRound>(() => mathRound(difficulty));
+  const [cur, setCur] = useState<MathRound>(() => mathRound(level));
 
   const last = round + 1 >= n;
 
@@ -39,11 +40,11 @@ export function MathGame({
     setRound((r) => r + 1);
     setSel(null);
     setAnswered(false);
-    setCur(mathRound(difficulty));
+    setCur(mathRound(level));
   };
 
   return (
-    <GameShell gameId="math" difficulty={difficulty} roundLabel={`${round + 1} / ${n}`}>
+    <GameShell gameId="math" sub={sub} roundLabel={`${round + 1} / ${n}`}>
       <Card>
         <div style={{ padding: "30px 22px", textAlign: "center" }}>
           <div style={{ fontSize: "calc(15px*var(--fs))", color: "var(--c-sub)", fontWeight: 700, marginBottom: 10 }}>

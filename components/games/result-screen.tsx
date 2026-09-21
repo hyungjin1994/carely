@@ -17,6 +17,8 @@ export function ResultScreen({
   nextLabel,
   nextMult,
   atTop,
+  levelFrom,
+  levelTo,
 }: {
   gameId: GameId;
   correct: number;
@@ -29,6 +31,9 @@ export function ResultScreen({
   nextLabel?: string;
   nextMult?: number;
   atTop?: boolean;
+  /** 레벨 게임만. 레벨은 자동으로 오르내리므로 버튼이 아니라 결과로 알린다. */
+  levelFrom?: number;
+  levelTo?: number;
 }) {
   const router = useRouter();
   const meta = getGame(gameId);
@@ -76,7 +81,42 @@ export function ResultScreen({
           </Card>
         </div>
 
-        {/* 다음 단계 권유 배너 */}
+        {/* 레벨 변화. 레벨 게임은 승급/강등이 자동이므로 선택 버튼을 두지 않는다. */}
+        {levelFrom !== undefined && levelTo !== undefined && levelTo !== levelFrom && (
+          <div
+            style={{
+              marginTop: 18,
+              width: "100%",
+              borderRadius: 18,
+              padding: "16px 18px",
+              background:
+                levelTo > levelFrom
+                  ? "linear-gradient(135deg,#00A63E,#42A800)"
+                  : "var(--c-card)",
+              border: levelTo > levelFrom ? "none" : "1px solid var(--c-line)",
+              color: levelTo > levelFrom ? "#fff" : "var(--c-text)",
+              boxShadow: levelTo > levelFrom ? "0 10px 24px rgba(0,166,62,.24)" : "none",
+            }}
+          >
+            <div style={{ fontSize: "calc(18px*var(--fs))", fontWeight: 800 }}>
+              {levelTo > levelFrom ? `${levelTo}단계로 올라갔어요!` : `다음엔 ${levelTo}단계로 해볼게요`}
+            </div>
+            <div
+              style={{
+                fontSize: "calc(14px*var(--fs))",
+                opacity: levelTo > levelFrom ? 0.95 : 1,
+                color: levelTo > levelFrom ? "#fff" : "var(--c-sub)",
+                marginTop: 4,
+              }}
+            >
+              {levelTo > levelFrom
+                ? "다음 판은 조금 더 어려워요"
+                : "조금 쉽게 해서 다시 올라가 봐요"}
+            </div>
+          </div>
+        )}
+
+        {/* 다음 단계 권유 배너 (3단계 게임 전용) */}
         {onNextLevel && (
           <div
             style={{
@@ -111,7 +151,9 @@ export function ResultScreen({
             {awarded > 0
               ? atTop
                 ? `최고 단계예요! 포인트 ${mult}배 적용됨`
-                : `포인트 ${mult}배 적용됨`
+                : levelFrom !== undefined && levelTo === levelFrom
+                  ? `${levelFrom}단계 유지 · 포인트 ${mult}배 적용됨`
+                  : `포인트 ${mult}배 적용됨`
               : correct > 0
                 ? "오늘은 이 게임 포인트를 다 모았어요"
                 : "다음엔 더 잘할 수 있어요"}

@@ -2,22 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/common/icon";
-import { DIFF, getGame, type Difficulty, type GameId } from "@/lib/games/config";
+import { getGame, type GameId } from "@/lib/games/config";
 
 export function GameShell({
   gameId,
-  difficulty,
+  sub,
   roundLabel,
   children,
 }: {
   gameId: GameId;
-  difficulty: Difficulty;
+  /** 제목 아래 한 줄. 3단계 게임은 "보통 · 포인트 2배", 레벨 게임은 "7단계 · 포인트 1.6배". */
+  sub: string;
   roundLabel: string | null;
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const meta = getGame(gameId);
-  const cfg = DIFF[difficulty];
 
   return (
     <div style={{ padding: "4px 22px 28px" }}>
@@ -42,7 +42,7 @@ export function GameShell({
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "calc(19px*var(--fs))", fontWeight: 800, color: "var(--c-text)" }}>{meta.name}</div>
           <div style={{ fontSize: "calc(13px*var(--fs))", color: "var(--c-sub)", marginTop: 2 }}>
-            {cfg.label} · 포인트 {cfg.mult}배
+            {sub}
           </div>
         </div>
         {roundLabel && (

@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { GameShell } from "@/components/games/game-shell";
 import { Icon } from "@/components/common/icon";
-import { DIFF, MEM, getGame, type Difficulty } from "@/lib/games/config";
-import { memDeck, memMoveLimit, memPreviewMs, type MemCard } from "@/lib/games/engine";
+import { MEM_UI, getGame } from "@/lib/games/config";
+import { memDeck, type MemCard } from "@/lib/games/engine";
+import { levelMult, memParams } from "@/lib/games/levels";
 
 /**
  * 카드 짝맞추기.
@@ -16,16 +17,15 @@ import { memDeck, memMoveLimit, memPreviewMs, type MemCard } from "@/lib/games/e
  *             맞춘 짝만큼 점수를 받는다. "실패" 화면은 없다.
  */
 export function MemoryGame({
-  difficulty,
+  level,
   onFinish,
 }: {
-  difficulty: Difficulty;
+  level: number;
   onFinish: (correct: number) => void;
 }) {
   const meta = getGame("mem");
-  const n = DIFF[difficulty].n.mem;
-  const previewMs = memPreviewMs(n, difficulty);
-  const moveLimit = memMoveLimit(n, difficulty);
+  const { pairs: n, previewMs, moveLimit } = memParams(level);
+  const sub = `${level}단계 · 포인트 ${levelMult(level)}배`;
 
   const [deck, setDeck] = useState<MemCard[]>(() => memDeck(n));
   const [phase, setPhase] = useState<"preview" | "play">("preview");
@@ -120,7 +120,7 @@ export function MemoryGame({
   };
 
   return (
-    <GameShell gameId="mem" difficulty={difficulty} roundLabel={null}>
+    <GameShell gameId="mem" sub={sub} roundLabel={null}>
       {showPreview ? (
         <PreviewBanner color={meta.color} leftMs={previewLeftMs} />
       ) : (
@@ -130,7 +130,7 @@ export function MemoryGame({
           <Stat
             label="남은 기회"
             value={`${movesLeft}번`}
-            color={movesLeft <= MEM.warnAtMovesLeft ? "#E52222" : "var(--c-text)"}
+            color={movesLeft <= MEM_UI.warnAtMovesLeft ? "#E52222" : "var(--c-text)"}
           />
         </div>
       )}

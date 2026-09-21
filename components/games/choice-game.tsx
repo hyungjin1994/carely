@@ -6,7 +6,12 @@ import { OptionButton } from "@/components/games/option-button";
 import { Card } from "@/components/ui/card";
 import { SkeletonCard } from "@/components/common/skeleton";
 import { Icon } from "@/components/common/icon";
-import { getGame, type ChoiceGameId, type ChoiceRound, type Difficulty } from "@/lib/games/config";
+import { DIFF, getGame, type ChoiceGameId, type ChoiceRound, type Difficulty } from "@/lib/games/config";
+
+/** 3단계 게임의 헤더 부제. */
+export function tierSub(d: Difficulty): string {
+  return `${DIFF[d].label} · 포인트 ${DIFF[d].mult}배`;
+}
 
 /**
  * 상식 퀴즈 + 단어 맞추기 (보드 구조 동일).
@@ -56,7 +61,7 @@ export function ChoiceGame({
   // 출제가 비어 오는 경우(은행이 빈 경우뿐) 빈 보드를 그리다 터지지 않게 막는다.
   if (!q) {
     return (
-      <GameShell gameId={gameId} difficulty={difficulty} roundLabel={null}>
+      <GameShell gameId={gameId} sub={tierSub(difficulty)} roundLabel={null}>
         <Card>
           <div
             style={{
@@ -77,7 +82,7 @@ export function ChoiceGame({
   }
 
   return (
-    <GameShell gameId={gameId} difficulty={difficulty} roundLabel={`${round + 1} / ${total}`}>
+    <GameShell gameId={gameId} sub={tierSub(difficulty)} roundLabel={`${round + 1} / ${total}`}>
       <Card>
         <div style={{ padding: "26px 22px", textAlign: "center" }}>
           <div
@@ -152,7 +157,7 @@ export function ChoiceGameSkeleton({
   difficulty: Difficulty;
 }) {
   return (
-    <GameShell gameId={gameId} difficulty={difficulty} roundLabel={null}>
+    <GameShell gameId={gameId} sub={tierSub(difficulty)} roundLabel={null}>
       <SkeletonCard h={168} style={{ borderRadius: 22 }} />
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18 }}>
         {[0, 1, 2, 3].map((i) => (

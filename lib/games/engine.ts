@@ -1,6 +1,7 @@
 // 순수 게임 로직 — 시안 Carely.dc.html (363–385, 454–458) 그대로 이식. React 비의존.
 
-import { DIFF, MEM, POINTS_PER, STROOP, type Difficulty, type GameId } from "@/lib/games/config";
+import { DIFF, POINTS_PER, type Difficulty, type GameId } from "@/lib/games/config";
+import { mathParams, stroopParams } from "@/lib/games/levels";
 import {
   SCOLORS, MEMFACES, SEQPADS,
   type StroopColor,
@@ -19,8 +20,8 @@ export function shuffle<T>(a: readonly T[]): T[] {
 export type MathRound = {
   a: number; b: number; plus: boolean; ans: number; opts: number[]; correct: number;
 };
-export function mathRound(diff: Difficulty): MathRound {
-  const max = diff === "easy" ? 9 : diff === "normal" ? 20 : 50;
+export function mathRound(level: number): MathRound {
+  const max = mathParams(level).maxOperand;
   let a = Math.floor(Math.random() * max) + 1;
   let b = Math.floor(Math.random() * max) + 1;
   const plus = Math.random() < 0.5;
@@ -64,9 +65,10 @@ export type StroopRound = {
   congruent: boolean;
 };
 
-export function stroopRound(diff: Difficulty): StroopRound {
+export function stroopRound(level: number): StroopRound {
+  const cfg = stroopParams(level);
   const ink = SCOLORS[Math.floor(Math.random() * SCOLORS.length)];
-  const congruent = Math.random() < STROOP.congruentRatio[diff];
+  const congruent = Math.random() < cfg.congruentRatio;
   const others = SCOLORS.filter((c) => c.hex !== ink.hex);
   const word = congruent ? ink : others[Math.floor(Math.random() * others.length)];
 
@@ -74,7 +76,7 @@ export function stroopRound(diff: Difficulty): StroopRound {
   // 유혹이 빠지면 간섭이 생기지 않아 스트룹이 아니게 된다.
   const must = congruent ? [ink] : [ink, word];
   const filler = shuffle(SCOLORS.filter((c) => !must.some((m) => m.hex === c.hex)));
-  const count = Math.min(Math.max(STROOP.optionCount[diff], must.length), SCOLORS.length);
+  const count = Math.min(Math.max(cfg.optionCount, must.length), SCOLORS.length);
   const opts = shuffle([...must, ...filler.slice(0, count - must.length)]);
 
   return { word: word.name, ink, opts, congruent };
@@ -93,16 +95,6 @@ export function memDeck(pairs: number): MemCard[] {
   }));
 }
 
-/** 시작 미리보기 시간(ms). 쌍이 많으면 길고, 난이도가 높으면 쌍당 시간이 짧다. */
-export function memPreviewMs(pairs: number, diff: Difficulty): number {
-  return Math.round(pairs * MEM.previewMsPerPair[diff]);
-}
-
-/** 뒤집기 제한. 도달하면 판이 끝나지만 맞춘 짝만큼은 점수를 받는다. */
-export function memMoveLimit(pairs: number, diff: Difficulty): number {
-  return Math.ceil(pairs * MEM.moveLimitPerPair[diff]);
-}
-
 // ── 순서 기억 패턴 (0-3 인덱스) ──
 /**
  * 같은 칸이 연달아 나오지 않게 한다.
@@ -119,16 +111,17 @@ export function seqPattern(len: number): number[] {
   }
   return p;
 }
-export function seqStartLen(diff: Difficulty): number {
-  return diff === "easy" ? 4 : diff === "normal" ? 5 : 6;
-}
 
 // ── 점수식 ──
 export function scoreFor(correct: number, mult: number): number {
   return correct * POINTS_PER * mult;
 }
 
-/** 서버 채점 시 라운드 수 상한 (클라가 보낸 correct/total 클램프용). */
+/**
+ * 서버 채점 시 라운드 수 상한 (클라가 보낸 correct/total 클램프용).
+ * 3단계를 쓰는 게임(상식 퀴즈·단어 맞추기) 전용이다.
+ * 레벨 게임은 levels.ts 의 levelRounds() 를 쓴다.
+ */
 export function maxRounds(id: GameId, diff: Difficulty): number {
   return DIFF[diff].n[id];
 }

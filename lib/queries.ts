@@ -38,7 +38,25 @@ async function uidFor(
 }
 
 /**
+ * 게임별 현재 레벨. 행이 없으면 1 (아직 안 해본 게임).
+ * 레벨을 쓰는 게임은 lib/games/levels.ts 의 LEVELED_GAMES.
+ */
+export async function getGameLevels(userId?: string): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const uid = await uidFor(supabase, userId);
+  if (!uid) return {};
+  const { data } = await supabase
+    .from("game_levels")
+    .select("game_id, level")
+    .eq("user_id", uid);
+  const out: Record<string, number> = {};
+  for (const r of data ?? []) out[r.game_id] = r.level;
+  return out;
+}
+
+/**
  * 게임별 마지막으로 플레이한 난이도.
+ * 3단계를 쓰는 게임(상식 퀴즈·단어 맞추기) 전용 — 레벨 게임은 getGameLevels().
  *
  * 전에는 게임 목록에서 들어가면 늘 쉬움부터 시작해서, 어려움을 하려면 매번
  * 쉬움 → 보통 → 어려움 3판을 거쳐야 했다. game_scores 에 difficulty 가 이미

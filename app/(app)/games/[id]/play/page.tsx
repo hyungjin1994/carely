@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { GamePlayer } from "@/components/games/game-player";
 import { serveRounds } from "@/lib/games/serve";
+import { getGameLevels } from "@/lib/queries";
+import { clampLevel, isLeveled } from "@/lib/games/levels";
 import { GAME_IDS, type ChoiceRound, type Difficulty, type GameId } from "@/lib/games/config";
 
 const DIFFS: Difficulty[] = ["easy", "normal", "hard"];
@@ -20,6 +22,8 @@ export default async function PlayPage({
   const { diff } = await searchParams;
   if (!GAME_IDS.includes(id as GameId)) notFound();
   const gameId = id as GameId;
+
+  // 3단계 게임(상식 퀴즈·단어 맞추기)만 diff 를 쓴다.
   const difficulty: Difficulty = DIFFS.includes(diff as Difficulty)
     ? (diff as Difficulty)
     : "easy";
@@ -30,5 +34,16 @@ export default async function PlayPage({
   const initialRounds: ChoiceRound[] | null =
     gameId === "quiz" || gameId === "word" ? await serveRounds(gameId, difficulty) : null;
 
-  return <GamePlayer gameId={gameId} difficulty={difficulty} initialRounds={initialRounds} />;
+  // 레벨 게임은 game_levels 가 진실이다. 클라가 정하게 두면 포인트를
+  // 마음대로 받을 수 있으므로 여기서 읽어 내려보낸다.
+  const initialLevel = isLeveled(gameId) ? clampLevel((await getGameLevels())[gameId] ?? 1) : 1;
+
+  return (
+    <GamePlayer
+      gameId={gameId}
+      difficulty={difficulty}
+      initialRounds={initialRounds}
+      initialLevel={initialLevel}
+    />
+  );
 }

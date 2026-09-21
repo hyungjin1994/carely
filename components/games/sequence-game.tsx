@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { GameShell } from "@/components/games/game-shell";
 import { Card } from "@/components/ui/card";
-import { DIFF, getGame, type Difficulty } from "@/lib/games/config";
-import { seqPattern, seqStartLen, SEQPADS } from "@/lib/games/engine";
+import { getGame } from "@/lib/games/config";
+import { seqPattern, SEQPADS } from "@/lib/games/engine";
+import { levelMult, seqParams } from "@/lib/games/levels";
 
 type Phase = "show" | "input" | "done";
 
@@ -14,18 +15,19 @@ const PAD_ON_MS = 560;
 const PAD_GAP_MS = 240;
 
 export function SequenceGame({
-  difficulty,
+  level,
   onFinish,
 }: {
-  difficulty: Difficulty;
+  level: number;
   onFinish: (correct: number) => void;
 }) {
   const meta = getGame("seq");
-  const rounds = DIFF[difficulty].n.seq;
+  const { rounds, startLen } = seqParams(level);
+  const sub = `${level}단계 · 포인트 ${levelMult(level)}배`;
 
   const [round, setRound] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [pattern, setPattern] = useState<number[]>(() => seqPattern(seqStartLen(difficulty)));
+  const [pattern, setPattern] = useState<number[]>(() => seqPattern(startLen));
   const [input, setInput] = useState<number[]>([]);
   const [phase, setPhase] = useState<Phase>("show");
   const [active, setActive] = useState(-1);
@@ -100,7 +102,7 @@ export function SequenceGame({
   };
 
   return (
-    <GameShell gameId="seq" difficulty={difficulty} roundLabel={null}>
+    <GameShell gameId="seq" sub={sub} roundLabel={null}>
       <Card>
         <div style={{ padding: 18, textAlign: "center" }}>
           <div style={{ fontSize: "calc(16px*var(--fs))", fontWeight: 800, color: phase === "show" ? meta.color : "var(--c-text)" }}>

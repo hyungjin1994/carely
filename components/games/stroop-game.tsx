@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { GameShell } from "@/components/games/game-shell";
 import { Card } from "@/components/ui/card";
-import { DIFF, STROOP, type Difficulty } from "@/lib/games/config";
+import { STROOP_UI } from "@/lib/games/config";
 import { stroopRound, type StroopRound } from "@/lib/games/engine";
+import { levelMult, stroopParams } from "@/lib/games/levels";
 
 /**
  * 색깔 맞추기(스트룹).
@@ -15,21 +16,21 @@ import { stroopRound, type StroopRound } from "@/lib/games/engine";
  * 시간이 지나면 그 문제만 못 맞힌 것으로 하고 넘어간다. 실패 화면은 없다.
  */
 export function StroopGame({
-  difficulty,
+  level,
   onFinish,
 }: {
-  difficulty: Difficulty;
+  level: number;
   onFinish: (correct: number) => void;
 }) {
-  const n = DIFF[difficulty].n.stroop;
-  const limitMs = STROOP.limitMs[difficulty];
+  const { rounds: n, limitMs } = stroopParams(level);
+  const sub = `${level}단계 · 포인트 ${levelMult(level)}배`;
 
   const [round, setRound] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [sel, setSel] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
   const [leftMs, setLeftMs] = useState(limitMs);
-  const [cur, setCur] = useState<StroopRound>(() => stroopRound(difficulty));
+  const [cur, setCur] = useState<StroopRound>(() => stroopRound(level));
 
   // 제한 시간 카운트. 답하면(answered) 멈춘다.
   // setState 는 인터벌 콜백 안에서만 호출한다 — 이펙트 본문의 동기 호출은
@@ -61,13 +62,13 @@ export function StroopGame({
         return;
       }
       setRound((r) => r + 1);
-      setCur(stroopRound(difficulty));
+      setCur(stroopRound(level));
       setSel(null);
       setAnswered(false);
       setLeftMs(limitMs);
-    }, STROOP.revealMs);
+    }, STROOP_UI.revealMs);
     return () => clearTimeout(t);
-  }, [answered, round, n, correct, difficulty, limitMs, onFinish]);
+  }, [answered, round, n, correct, level, limitMs, onFinish]);
 
   const pick = (i: number) => {
     if (answered) return;
@@ -77,12 +78,12 @@ export function StroopGame({
   };
 
   const ratio = limitMs > 0 ? Math.max(0, leftMs / limitMs) : 1;
-  const barColor = ratio <= STROOP.warnRatio ? "#E52222" : cur.ink.hex;
+  const barColor = ratio <= STROOP_UI.warnRatio ? "#E52222" : cur.ink.hex;
   // 보기 개수가 홀수면 마지막 칸이 한 줄을 다 쓰게 해서 빈자리를 없앤다.
   const cols = cur.opts.length >= 4 ? 2 : 1;
 
   return (
-    <GameShell gameId="stroop" difficulty={difficulty} roundLabel={`${round + 1} / ${n}`}>
+    <GameShell gameId="stroop" sub={sub} roundLabel={`${round + 1} / ${n}`}>
       <Card>
         <div style={{ padding: "34px 22px", textAlign: "center" }}>
           <div style={{ fontSize: "calc(15px*var(--fs))", color: "var(--c-sub)", fontWeight: 700, marginBottom: 16 }}>

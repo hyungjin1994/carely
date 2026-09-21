@@ -172,6 +172,14 @@ export type Notification = {
   channel: "push" | "email";
 };
 
+/** 게임 레벨(1~30). 레벨을 쓰는 게임은 lib/games/levels.ts 의 LEVELED_GAMES. */
+export type GameLevel = {
+  user_id: string;
+  game_id: string;
+  level: number;
+  updated_at: string;
+};
+
 /** 자녀가 낸 회상 질문. month 는 제철 출제용 힌트(1~12), null 이면 아무 때나. */
 export type FamilyQuestion = {
   id: string;
@@ -232,6 +240,7 @@ export type Database = {
       quiz_seen: Table<QuizSeen>;
       family_questions: Table<FamilyQuestion>;
       family_answers: Table<FamilyAnswer>;
+      game_levels: Table<GameLevel>;
     };
     Functions: {
       award_points: {
