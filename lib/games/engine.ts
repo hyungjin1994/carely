@@ -1,6 +1,6 @@
 // 순수 게임 로직 — 시안 Carely.dc.html (363–385, 454–458) 그대로 이식. React 비의존.
 
-import { DIFF, POINTS_PER, type Difficulty, type GameId } from "@/lib/games/config";
+import { DIFF, MEM, POINTS_PER, type Difficulty, type GameId } from "@/lib/games/config";
 import {
   SCOLORS, MEMFACES, SEQPADS,
   type StroopColor,
@@ -58,10 +58,22 @@ export type MemCard = {
   icon: string; color: string; key: number; flipped: boolean; matched: boolean;
 };
 export function memDeck(pairs: number): MemCard[] {
-  const faces = MEMFACES.slice(0, pairs);
+  // 아이콘 풀도 매 판 섞는다. slice(0, pairs) 만 하면 쉬움(8쌍)은 늘 같은 8개가
+  // 같은 순서로 나온다 — 미리보기를 넣으면 외울 필요가 없어져 더 치명적이다.
+  const faces = shuffle(MEMFACES).slice(0, pairs);
   return shuffle([...faces, ...faces]).map((f, i) => ({
     ...f, key: i, flipped: false, matched: false,
   }));
+}
+
+/** 시작 미리보기 시간(ms). 쌍이 많으면 길고, 난이도가 높으면 쌍당 시간이 짧다. */
+export function memPreviewMs(pairs: number, diff: Difficulty): number {
+  return Math.round(pairs * MEM.previewMsPerPair[diff]);
+}
+
+/** 뒤집기 제한. 도달하면 판이 끝나지만 맞춘 짝만큼은 점수를 받는다. */
+export function memMoveLimit(pairs: number): number {
+  return Math.ceil(pairs * MEM.moveLimitPerPair);
 }
 
 // ── 순서 기억 패턴 (0-3 인덱스) ──
