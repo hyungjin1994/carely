@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/common/icon";
+import { NoticeBanner } from "./notice-banner";
+import type { UnreadNotice } from "@/lib/queries";
 import { fmt } from "@/lib/utils";
 import { showToast } from "@/components/common/toast";
 import { roleLabel } from "@/lib/roles";
@@ -33,7 +35,13 @@ export type SeniorView = {
   unrepliedRecall: number;
 };
 
-export function ManagerDashboard({ seniors }: { seniors: SeniorView[] }) {
+export function ManagerDashboard({
+  seniors,
+  notices,
+}: {
+  seniors: SeniorView[];
+  notices: UnreadNotice[];
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", background: "var(--c-screen)" }}>
       <div style={{ padding: "12px 22px 14px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -45,6 +53,12 @@ export function ManagerDashboard({ seniors }: { seniors: SeniorView[] }) {
             로그아웃
           </button>
         </form>
+      </div>
+
+      {/* 확인하지 않은 알림. 푸시가 설정돼 있지 않으므로 앱을 열었을 때
+          놓칠 수 없도록 어르신 카드보다 위에 둔다. */}
+      <div style={{ padding: "0 22px" }}>
+        <NoticeBanner notices={notices} />
       </div>
 
       <div style={{ padding: "0 22px 28px", display: "flex", flexDirection: "column", gap: 18 }}>

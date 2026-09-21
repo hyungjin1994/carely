@@ -58,3 +58,33 @@ export async function sendMessage(familyId: string, text: string): Promise<Conne
   revalidatePath("/connect");
   return { ok: true };
 }
+
+/** 알림 확인 처리. 본인 알림만 (notifications_update_self, 0018). */
+export async function markNoticeRead(id: string): Promise<ConnectState> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("read_at", null);
+  if (error) return { error: "확인 처리에 실패했어요" };
+  revalidatePath("/connect");
+  return { ok: true };
+}
+
+/** 쌓인 알림을 한 번에 확인 처리. */
+export async function markAllNoticesRead(): Promise<ConnectState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요해요" };
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
+    .is("read_at", null);
+  if (error) return { error: "확인 처리에 실패했어요" };
+  revalidatePath("/connect");
+  return { ok: true };
+}

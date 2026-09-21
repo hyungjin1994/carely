@@ -1,7 +1,7 @@
 import { ensureProfile } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedPhotoUrl } from "@/lib/storage";
-import { getSeniorSummary, getLatestMeasurements } from "@/lib/queries";
+import { getSeniorSummary, getLatestMeasurements, getUnreadNotices } from "@/lib/queries";
 import { getUnrepliedCount } from "@/lib/recall/queries";
 import type { Role } from "@/lib/database.types";
 import { ConnectEntry } from "./connect-entry";
@@ -72,5 +72,6 @@ export default async function ConnectPage() {
     }),
   );
 
-  return <ManagerDashboard seniors={seniors} />;
+  const notices = await getUnreadNotices();
+  return <ManagerDashboard seniors={seniors} notices={notices} />;
 }

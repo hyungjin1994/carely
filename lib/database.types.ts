@@ -170,6 +170,8 @@ export type Notification = {
   send_at: string;
   sent: boolean;
   channel: "push" | "email";
+  /** 사람이 확인(읽음)한 시각. sent 는 푸시·이메일 발송 여부라 별개 개념이다. */
+  read_at: string | null;
 };
 
 /** 게임 레벨(1~30). 레벨을 쓰는 게임은 lib/games/levels.ts 의 LEVELED_GAMES. */
@@ -256,6 +258,7 @@ export type Database = {
       complete_exchange: { Args: { p_id: string }; Returns: undefined };
       is_linked: { Args: { a: string; b: string }; Returns: boolean };
       mark_quiz_seen: { Args: { p_qids: string[] }; Returns: undefined };
+      notify_managers: { Args: { p_kind: string; p_title: string; p_body: string }; Returns: number };
     };
   };
 };

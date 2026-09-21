@@ -37,6 +37,38 @@ async function uidFor(
   return data.user?.id ?? null;
 }
 
+export type UnreadNotice = {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  at: string;
+};
+
+/**
+ * 확인하지 않은 알림. 자녀가 /connect 를 열 때 위에 띄운다.
+ * 푸시(VAPID)가 설정돼 있지 않아도 앱에서는 보이게 하는 것이 목적이다.
+ */
+export async function getUnreadNotices(limit = 20): Promise<UnreadNotice[]> {
+  const supabase = await createClient();
+  const uid = await uidFor(supabase);
+  if (!uid) return [];
+  const { data } = await supabase
+    .from("notifications")
+    .select("id, kind, title, body, send_at")
+    .eq("user_id", uid)
+    .is("read_at", null)
+    .order("send_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []).map((n) => ({
+    id: n.id,
+    kind: n.kind,
+    title: n.title,
+    body: n.body,
+    at: n.send_at,
+  }));
+}
+
 /**
  * 게임별 현재 레벨. 행이 없으면 1 (아직 안 해본 게임).
  * 레벨을 쓰는 게임은 lib/games/levels.ts 의 LEVELED_GAMES.

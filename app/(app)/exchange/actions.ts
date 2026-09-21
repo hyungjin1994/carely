@@ -31,6 +31,16 @@ export async function requestExchange(amount: number): Promise<ExchangeActionSta
     .insert({ user_id: user.id, amount, status: "pending" });
   if (error) return { error: "신청에 실패했어요" };
 
+  // 자녀에게 알림. RLS 가 본인 앞으로만 insert 를 허용하므로
+  // SECURITY DEFINER RPC 로 넣는다 (0018).
+  // 알림 실패로 신청을 되돌리지는 않는다 — 신청은 이미 접수됐고,
+  // 자녀 대시보드의 대기 목록에도 그대로 보인다.
+  await supabase.rpc("notify_managers", {
+    p_kind: "exchange",
+    p_title: "환전 신청이 들어왔어요",
+    p_body: `${amount.toLocaleString("ko-KR")}원 환전을 신청했어요. 확인해 주세요.`,
+  });
+
   revalidatePath("/exchange");
   return { ok: true };
 }
