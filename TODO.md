@@ -13,24 +13,27 @@
 ### 알림 키 (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
 
 앱에서 **"알림 키가 올바르지 않아요"** 가 뜬다. 값이 잘못 들어가 있다.
-공개 키는 **87자이고 `B` 로 시작**한다. 43자면 비밀 키를 넣은 것이다.
+공개 키는 **87자이고 `B` 로 시작**한다. 43자면 개인 키를 넣은 것이다.
 
 ```bash
-npx web-push generate-vapid-keys
-#   Public Key:  B... (87자)  → NEXT_PUBLIC_VAPID_PUBLIC_KEY
-#   Private Key: ...  (43자)  → VAPID_PRIVATE_KEY
+node scripts/vapid-keys.mjs     # → vapid-keys.txt (gitignore 됨)
 ```
 
-**두 키는 한 쌍이라 같이 바꿔야 한다.** 키를 새로 만들면 기존 구독이 전부
-무효가 되므로 어머니·자녀 양쪽에서 알림을 다시 켜야 한다. 현재 구독이 0이라
-지금 바꾸는 편이 싸다.
+파일 안의 두 줄을 Vercel 환경변수에 그대로 넣고 **재배포**한다.
+`NEXT_PUBLIC_` 은 빌드 시점에 번들에 박히므로 변수만 바꿔도 반영되지 않는다.
+옮긴 뒤 `rm vapid-keys.txt`.
 
-Vercel 환경변수를 고친 뒤 **재배포**해야 한다 — `NEXT_PUBLIC_` 은 빌드 시점에
-번들에 박힌다.
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY   87자, B 로 시작   구독 + 발송
+VAPID_PRIVATE_KEY              43자              발송
+```
 
-### `0023` 실행 + 회상 질문 보정
+**`VAPID_PUBLIC_KEY` 는 이제 안 쓴다.** 예전엔 같은 공개 키를 이 변수에도
+복사해야 했고, 한쪽만 채우면 구독은 되는데 발송만 조용히 안 됐다.
+Vercel 에 남아 있으면 지워도 된다(남겨둬도 같은 값이면 무해).
 
-아래 "가족 회상 질문 호칭" 참고.
+**두 키는 한 쌍이라 같이 바꿔야 한다.** 새로 만들면 기존 구독이 전부 무효가
+되므로 양쪽에서 알림을 다시 켜야 한다. 현재 구독이 0이라 지금이 제일 싸다.
 
 ---
 
