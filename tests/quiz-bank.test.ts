@@ -84,10 +84,13 @@ describe("문제 은행 데이터", () => {
   });
 
   it("문제 문구가 전부 유일하다", () => {
-    // 같은 것을 묻는 문제가 두 벌 있으면 어머니가 중복으로 느낀다.
-    const prompts = candidatesFor("quiz").map((c) => c.make().q);
-    const dup = prompts.filter((p, i) => prompts.indexOf(p) !== i);
-    expect(dup, `중복: ${[...new Set(dup)].slice(0, 5).join(" | ")}`).toHaveLength(0);
+    // 같은 문구가 두 번 있으면 기대하는 정답이 서로 달라 정답이 두 개가 된다.
+    // 연상 게임(단어)에서 특히 위험하다 — "바늘" 은 실도 골무도 맞다.
+    for (const g of ["quiz", "word"] as const) {
+      const prompts = candidatesFor(g).map((c) => c.make().q);
+      const dup = prompts.filter((p, i) => prompts.indexOf(p) !== i);
+      expect(dup, `${g} 중복: ${[...new Set(dup)].slice(0, 5).join(" | ")}`).toHaveLength(0);
+    }
   });
 });
 

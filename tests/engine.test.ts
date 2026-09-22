@@ -99,7 +99,10 @@ describe("seqPattern", () => {
         const p = seqPattern(len);
         expect(p).toHaveLength(len);
         for (let k = 1; k < p.length; k++) expect(p[k]).not.toBe(p[k - 1]);
-        for (const v of p) expect(v).toBeGreaterThanOrEqual(0), expect(v).toBeLessThan(4);
+        for (const v of p) {
+          expect(v).toBeGreaterThanOrEqual(0);
+          expect(v).toBeLessThan(4);
+        }
       }
     }
   });
