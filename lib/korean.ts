@@ -30,6 +30,25 @@ export function hasFinalConsonant(word: string): boolean {
   return (code - HANGUL_START) % JONGSEONG_COUNT !== 0;
 }
 
+/**
+ * 사람 이름을 호칭으로 바꾼다. 받침이 있으면 "이" 를 붙인다.
+ *
+ *   형진 → 형진이      수미 → 수미
+ *
+ * 한국어에서 받침 있는 이름은 부를 때 "이" 가 붙는다. 이게 없으면 문법은
+ * 맞는데 읽는 결이 딱딱해진다 — "형진 낳으실 때" vs "형진이 낳으실 때".
+ *
+ * ── 이 함수는 이름에만 쓴다 ──
+ * 일반 호칭에 적용하면 "아들" → "아들이" → 뒤에 조사가 붙어 "아들이가" 가 된다.
+ * 그래서 profiles.name(사람 이름이 확실한 값)에만 적용하고, 관리자가 직접 적은
+ * child_label 에는 쓰지 않는다. 그 칸은 읽히는 그대로 적는 칸이다.
+ */
+export function nameToLabel(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return trimmed;
+  return hasFinalConsonant(trimmed) ? `${trimmed}이` : trimmed;
+}
+
 /** 질문 문구에 쓸 수 있는 조사 쌍. 앞이 받침 있을 때, 뒤가 없을 때. */
 export const PARTICLE_PAIRS = ["이/가", "을/를", "과/와", "이랑/랑", "은/는", "으로/로"] as const;
 export type ParticlePair = (typeof PARTICLE_PAIRS)[number];

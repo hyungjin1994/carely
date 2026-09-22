@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fillChildLabel, hasFinalConsonant, pickParticle } from "@/lib/korean";
+import { fillChildLabel, hasFinalConsonant, nameToLabel, pickParticle } from "@/lib/korean";
 
 describe("hasFinalConsonant", () => {
   it("받침 있는 글자", () => {
@@ -92,5 +92,55 @@ describe("fillChildLabel", () => {
     expect(fillChildLabel("제일 행복했던 순간이 언제예요?", "형진이")).toBe(
       "제일 행복했던 순간이 언제예요?",
     );
+  });
+});
+
+describe("nameToLabel", () => {
+  it("받침 있는 이름에는 이 를 붙인다", () => {
+    expect(nameToLabel("형진")).toBe("형진이");
+    expect(nameToLabel("민혁")).toBe("민혁이");
+    expect(nameToLabel("정")).toBe("정이");
+  });
+
+  it("받침 없는 이름은 그대로", () => {
+    expect(nameToLabel("수미")).toBe("수미");
+    expect(nameToLabel("지호")).toBe("지호");
+  });
+
+  it("앞뒤 공백을 정리한다", () => {
+    expect(nameToLabel("  형진 ")).toBe("형진이");
+  });
+
+  it("빈 값은 빈 값", () => {
+    expect(nameToLabel("")).toBe("");
+    expect(nameToLabel("   ")).toBe("");
+  });
+
+  it("한글이 아니면 그대로 — 조사 규칙을 적용할 수 없다", () => {
+    expect(nameToLabel("Tom")).toBe("Tom");
+  });
+
+  it("이름만 읽어도 질문이 자연스럽게 읽힌다 — 설정이 필요 없다", () => {
+    // profiles.name 이 "형진" 하나뿐일 때 실제로 나가는 문구.
+    const label = nameToLabel("형진");
+    expect(fillChildLabel("{자녀} 낳으실 때 어떤 기분이었어요?", label)).toBe(
+      "형진이 낳으실 때 어떤 기분이었어요?",
+    );
+    expect(fillChildLabel("{자녀}한테 바라는 게 있어요?", label)).toBe(
+      "형진이한테 바라는 게 있어요?",
+    );
+    expect(fillChildLabel("{자녀}이/가 좋아하는 음식이 뭘까요?", label)).toBe(
+      "형진이가 좋아하는 음식이 뭘까요?",
+    );
+    expect(fillChildLabel("남편이 {자녀}을/를 제일 예뻐했던 순간이 뭐예요?", label)).toBe(
+      "남편이 형진이를 제일 예뻐했던 순간이 뭐예요?",
+    );
+  });
+
+  it("일반 호칭에는 쓰지 않는다 — 쓰면 아들이가 가 된다", () => {
+    // 이 규칙이 왜 profiles.name 전용인지 고정해 둔다.
+    expect(fillChildLabel("{자녀}이/가 좋아하는", nameToLabel("아들"))).toBe("아들이가 좋아하는");
+    // 관리자가 적은 값은 그대로 써야 맞다.
+    expect(fillChildLabel("{자녀}이/가 좋아하는", "아들")).toBe("아들이 좋아하는");
   });
 });

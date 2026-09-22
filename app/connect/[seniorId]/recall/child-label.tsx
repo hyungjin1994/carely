@@ -12,7 +12,12 @@ import { setChildLabel } from "@/app/connect/[seniorId]/recall/actions";
 const SAMPLE = "{자녀}이/가 좋아하는 음식이 뭘까요?";
 
 /**
- * 자녀 호칭 설정.
+ * 자녀 호칭 설정. **안 건드려도 된다.**
+ *
+ * 기본값은 관리자 이름이고, 이름은 사람 이름이 확실하므로 받침이 있으면 "이" 를
+ * 붙여 자연스럽게 나간다(형진 → 형진이 → "형진이가 좋아하는…").
+ * 이 칸은 그걸 덮고 싶을 때만 쓴다 — "아들"·"큰딸" 처럼 이름이 아닌 호칭으로
+ * 부르게 하거나, profiles 에 성까지 들어가 있을 때.
  *
  * 질문 문구에는 `{자녀}` 자리표시자가 들어 있고 출제할 때 이 값으로 바뀐다.
  * 그래서 호칭을 바꾸면 이미 있는 질문 전부가 같이 바뀐다 — 문구를 고치는 게
@@ -83,7 +88,7 @@ export function ChildLabel({
           질문에서 나를 부르는 말
           <span style={{ color: "var(--c-text)", fontWeight: 800 }}> · {inUse}</span>
           {!current?.trim() && (
-            <span style={{ color: "var(--c-faint)", fontWeight: 700 }}> (기본값)</span>
+            <span style={{ color: "var(--c-faint)", fontWeight: 700 }}> (내 이름 · 그대로 둬도 됨)</span>
           )}
         </span>
         <Icon name="chevron-right" size={18} color="var(--c-faint)" />
@@ -112,7 +117,8 @@ export function ChildLabel({
             marginBottom: 12,
           }}
         >
-          {seniorName}님께 읽히는 그대로 적어주세요. 조사는 앱이 알아서 붙입니다.
+          비워두면 내 이름(<b>{fallback}</b>)으로 나갑니다. 다르게 부르게 하고 싶을 때만
+          적으세요 — {seniorName}님께 읽히는 그대로요. 조사는 앱이 알아서 붙입니다.
         </div>
 
         <input

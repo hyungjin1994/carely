@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate } from "@/lib/time";
-import { fillChildLabel } from "@/lib/korean";
+import { fillChildLabel, nameToLabel } from "@/lib/korean";
 import { getSignedPhotoUrl, getSignedPhotoUrls } from "@/lib/storage";
 import type { FamilyAnswer, FamilyQuestion } from "@/lib/database.types";
 
@@ -34,9 +34,13 @@ export type TodayRecall = {
 
 /**
  * 어머니 화면에 쓸 자녀 호칭.
+ *
  * family_links.child_label → 관리자 이름 → "아이" 순으로 떨어진다.
- * 이름을 그대로 쓰면 "형진 좋아하는" 처럼 어색하므로 관리자가 별칭 칸에
- * "형진이" 로 적을 수 있게 해 뒀다(0023).
+ * **아무것도 설정하지 않아도 관리자 이름으로 자연스럽게 나온다** — 이름은 사람
+ * 이름이 확실하므로 받침이 있으면 "이" 를 붙인다(형진 → 형진이).
+ *
+ * child_label(0023)은 그걸 덮고 싶을 때만 쓴다. "아들"·"큰딸" 처럼 이름이 아닌
+ * 호칭으로 부르게 하거나, 이름이 profiles 에 성까지 들어가 있을 때다.
  */
 export async function childLabelFor(seniorId: string): Promise<string> {
   const { stored, fallback } = await childLabelParts(seniorId);
@@ -67,7 +71,10 @@ export async function childLabelParts(
     .select("name")
     .eq("id", data.manager_id)
     .maybeSingle();
-  return { stored, fallback: prof?.name?.trim() || "아이" };
+  // 관리자 이름은 사람 이름이 확실하므로 받침이 있으면 "이" 를 붙여도 안전하다.
+  // "형진" 보다 "형진이" 가 어머니가 실제로 부르는 말에 가깝다.
+  const name = prof?.name?.trim();
+  return { stored, fallback: name ? nameToLabel(name) : "아이" };
 }
 
 function kstDayRange() {
