@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { ensureProfile } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
-import { getRecallFeed } from "@/lib/recall/queries";
+import { childLabelParts, getRecallFeed } from "@/lib/recall/queries";
 import { SubHeader } from "@/components/common/sub-header";
+import { ChildLabel } from "./child-label";
 import { RecallFeed, type FeedRow } from "./recall-feed";
 
 // 인증·사용자별 데이터 + 권한 검사 — 항상 동적.
@@ -26,7 +27,7 @@ export default async function SeniorRecallPage({
     .maybeSingle();
   if (!link) redirect("/connect");
 
-  const [{ data: senior }, feed, { count }] = await Promise.all([
+  const [{ data: senior }, feed, { count }, childLabel] = await Promise.all([
     supabase.from("profiles").select("name").eq("id", seniorId).maybeSingle(),
     getRecallFeed(seniorId),
     supabase
@@ -34,6 +35,7 @@ export default async function SeniorRecallPage({
       .select("id", { count: "exact", head: true })
       .eq("senior_id", seniorId)
       .eq("active", true),
+    childLabelParts(seniorId),
   ]);
 
   const seniorName = senior?.name ?? "어르신";
@@ -48,6 +50,14 @@ export default async function SeniorRecallPage({
   return (
     <div style={{ padding: "4px 22px 28px" }}>
       <SubHeader title={`${seniorName} 이야기`} href="/connect" />
+      <div style={{ marginBottom: 14 }}>
+        <ChildLabel
+          seniorId={seniorId}
+          seniorName={seniorName}
+          current={childLabel.stored}
+          fallback={childLabel.fallback}
+        />
+      </div>
       <RecallFeed
         seniorId={seniorId}
         seniorName={seniorName}

@@ -6,6 +6,8 @@ import { requireManager } from "@/lib/auth/dal";
 
 const MAX_REPLY = 1000;
 const MAX_PROMPT = 300;
+/** 호칭은 짧다. 길게 넣으면 질문 문구가 읽히지 않는다. */
+const MAX_CHILD_LABEL = 20;
 
 /** 연결이 살아 있는지 확인. 없으면 아무 것도 못 하게 막는다(RLS 와 이중). */
 async function assertLinked(seniorId: string) {
@@ -99,5 +101,35 @@ export async function toggleRecallQuestion(input: {
   if (error) return { error: "바꾸지 못했어요" };
 
   revalidatePath(`/connect/${input.seniorId}/recall`);
+  return {};
+}
+
+/**
+ * 어머니 화면에 보일 자녀 호칭을 정한다.
+ *
+ * 질문 문구에는 `{자녀}` 자리표시자가 들어가 있고(0023 · lib/korean.ts), 출제할 때
+ * 이 값으로 바뀐다. 문구가 아니라 호칭만 바꾸는 것이므로 이미 쌓인 답변 기록은
+ * 그대로 있고, 예전 질문도 새 호칭으로 다시 읽힌다.
+ *
+ * 읽히는 그대로 적게 한다 — "형진이" · "아들" · "큰딸". 조사는 앱이 고른다.
+ * 비우면 관리자 이름을 쓰고, 그것도 없으면 "아이" 로 채운다.
+ */
+export async function setChildLabel(input: {
+  seniorId: string;
+  label: string;
+}): Promise<{ error?: string }> {
+  const ctx = await assertLinked(input.seniorId);
+  if (!ctx) return { error: "연결된 가족이 아니에요" };
+
+  const label = input.label.trim().slice(0, MAX_CHILD_LABEL);
+  const { error } = await ctx.supabase
+    .from("family_links")
+    .update({ child_label: label || null })
+    .eq("manager_id", ctx.profile.id)
+    .eq("senior_id", input.seniorId);
+  if (error) return { error: "호칭을 바꾸지 못했어요" };
+
+  revalidatePath(`/connect/${input.seniorId}/recall`);
+  revalidatePath("/"); // 어머니 홈의 오늘 질문
   return {};
 }

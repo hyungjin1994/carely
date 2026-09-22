@@ -2,8 +2,35 @@
 
 > 마지막 갱신: 2026-09-22
 
-마이그레이션 `0015`~`0021` 전부 적용됨. 코드도 `origin/main`(`dd93c80`)까지 푸시됨.
-테스트 46개 통과(`npm test`), 레포 전체 lint 에러 0.
+마이그레이션 `0015`~`0022` 적용됨. `0023_child_label.sql` 은 **아직 안 돌렸다.**
+테스트 89개 통과(`npm test`), 레포 전체 lint 에러 0.
+커밋은 로컬에만 있고 아직 푸시 전이다.
+
+---
+
+## 지금 막힌 것
+
+### 알림 키 (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
+
+앱에서 **"알림 키가 올바르지 않아요"** 가 뜬다. 값이 잘못 들어가 있다.
+공개 키는 **87자이고 `B` 로 시작**한다. 43자면 비밀 키를 넣은 것이다.
+
+```bash
+npx web-push generate-vapid-keys
+#   Public Key:  B... (87자)  → NEXT_PUBLIC_VAPID_PUBLIC_KEY
+#   Private Key: ...  (43자)  → VAPID_PRIVATE_KEY
+```
+
+**두 키는 한 쌍이라 같이 바꿔야 한다.** 키를 새로 만들면 기존 구독이 전부
+무효가 되므로 어머니·자녀 양쪽에서 알림을 다시 켜야 한다. 현재 구독이 0이라
+지금 바꾸는 편이 싸다.
+
+Vercel 환경변수를 고친 뒤 **재배포**해야 한다 — `NEXT_PUBLIC_` 은 빌드 시점에
+번들에 박힌다.
+
+### `0023` 실행 + 회상 질문 보정
+
+아래 "가족 회상 질문 호칭" 참고.
 
 ---
 
@@ -71,33 +98,74 @@ select p.name, p.notify_on,
 
 ## 손봐야 할 것
 
-### 가족 회상 질문 문구 (제일 먼저 할 만함)
+### 가족 회상 질문 호칭 ← 제일 먼저 할 것
 
-seed 83개 중 집안 상황에 맞게 고칠 것:
+두 가지가 겹쳐 있었다.
 
-- `아버지` 가 들어간 문항들 — 호칭·상황이 다르면 수정
-- 9번 `어머니가 해주시던 음식` — 외할머니를 뜻한 것. 집에서 쓰는 호칭으로
+**(1) 자녀 이름이 문구에 박혀 있었다** — "형진이가 좋아하는 음식이 뭘까요?".
+이 앱은 다른 가족도 쓴다. 이제 문구에는 `{자녀}` 자리표시자가 들어가고,
+관리자가 정한 호칭으로 출제할 때 바뀐다. 조사는 받침 유무로 갈리므로 문구에
+조사 쌍을 적는다 — `{자녀}이/가`.
 
-문구 수정은 **DB에서 직접** 한다. `prompt` 가 unique 키라서 seed 파일을 고치면
-새 질문으로 들어간다.
+**(2) 같은 단어가 다른 사람을 가리켰다.**
+
+```
+"형진이가 어머니랑 제일 닮은 데"          어머니 = 읽는 분 본인
+"어머니가 해주시던 음식 중에"             어머니 = 읽는 분의 어머니
+"아버지랑 어머니 중에 누가 더 엄했어요"   아버지 = 읽는 분의 아버지
+"아버지 처음 봤을 때 어떤 생각"           아버지 = 읽는 분의 배우자
+```
+
+읽는 분 시점으로 통일했다. 자녀 → `{자녀}` · 배우자 → `남편` ·
+본인의 부모 → `엄마`·`아빠` · 본인은 지칭하지 않는다.
+
+**해야 할 것 — Supabase SQL Editor 에서 순서대로:**
+
+```
+1. supabase/migrations/0023_child_label.sql        family_links.child_label 추가
+2. supabase/seed/family_questions_patch_01.sql     문구 23개 교체 + 새 질문 29개
+```
+
+`2` 는 한 번만 돌리면 되고, 다시 돌려도 안전하다. 끝나면 이렇게 나온다.
 
 ```sql
-select id, prompt from public.family_questions order by created_at;
-update public.family_questions set prompt = '...' where id = '...';
+select active, count(*) from public.family_questions group by active;
+--   true 104 · false 7
+select prompt from public.family_questions where prompt like '%형진%';
+--   0행
 ```
 
-빼려면 지우지 말고 `active = false` — 답변 기록이 살아 있어야 한다.
+**3. 호칭 정하기** — 앱에서 `/connect` → 어머니 → 이야기 → 상단
+"질문에서 나를 부르는 말". 읽히는 그대로 적는다("형진이"·"아들"·"큰딸").
+비워두면 관리자 이름을 쓰고, 그것도 없으면 "아이" 로 채운다.
 
-### 민감한 질문 3개
+> 이름으로 하려면 "형진" 이 아니라 **"형진이"** 로 적어야 한다. 받침 있는 이름에
+> 자동으로 "이" 를 붙이는 규칙은 이름에만 통하고 "아들" → "아들이" → "아들이가"
+> 가 되어버려서, 호칭은 사람이 적고 조사만 앱이 고르게 했다(`lib/korean.ts`).
 
-`supabase/seed/family_questions.sql` 맨 아래 주석으로 분리해 뒀다.
-돌아가신 분 이야기가 나올 수 있어서 **곁에 있을 때만** 켠다.
+### 곁에 있을 때만 하는 질문 7개
+
+패치가 `active = false` 로 DB 에 넣는다. 상실을 정면으로 건드리므로
+**혼자 답하게 두지 않는다.** 곁에 있을 때 열고, 끝나면 다시 닫는다.
 
 ```
-· 아버지랑 제일 크게 다퉜던 일, 기억나세요?
-· 형진이 키우면서 제일 힘들었던 때는 언제예요?
+· 남편이랑 제일 크게 다퉜던 일, 기억나세요?
 · 요즘 제일 보고 싶은 사람이 누구예요?
+· 요즘 제일 자주 생각나는 사람이 누구예요?
+· 남편한테 지금 제일 하고 싶은 말이 뭐예요?
+· 남편이 제일 그리울 때가 언제예요?
+· 엄마 아빠가 제일 보고 싶을 때가 언제예요?
+· 남편이 {자녀}을/를 보면 뭐라고 하실 것 같아요?
 ```
+
+```sql
+update public.family_questions set active = true
+ where prompt = '남편한테 지금 제일 하고 싶은 말이 뭐예요?';
+```
+
+반대로 **좋았던 기억을 묻는 질문은 혼자 답해도 괜찮아서** `active = true` 로
+뒀다(엄마 아빠 11개 · 남편 11개). 회상 요법에서 긍정적 회상은 슬픔을 덧내지
+않고 관계를 이어가는 쪽으로 작동한다(continuing bonds).
 
 ### 난이도 숫자 조정 (해보고 나서)
 
@@ -168,24 +236,20 @@ GitHub Actions 도 가능하지만 private 레포는 15분 간격이면 무료 �
 앱에 구조적으로 빈 것: 어머니 쪽은 **"나아지고 있다"는 피드백**이 없고,
 자녀 쪽은 **숫자만 있고 해석이 없다.** 둘 사이에 **같이 하는 것**이 없다.
 
-### 1. 주간 리포트 ← 다음에 할 것
+### 1. 주간 리포트 — 했음
 
 일요일 저녁에 한 주를 정리해 양쪽에 보여준다.
+어머니는 홈에서 **시트**로, 자녀는 **알림**으로 받는다. 별도 화면을 만들지
+않았다 — 주 1회만 볼 것에 탭을 하나 더 두면 나머지 6일은 죽은 칸이 된다.
 
 ```
-어머니   게임 12판(지난주 8판) · 습관 5일 ▲2 · 약 19/21 · 혈압 3회
-        "순서 기억이 3단계에서 6단계로 올랐어요"
-
-자녀     같은 내용 + 눈여겨볼 것
-        "저녁 약을 두 번 놓치셨어요" / "혈압이 지난주보다 조금 올랐어요"
+lib/weekly/queries.ts   집계 · weeklyDigest · hasSeenWeekly
+0022                    weekly_report_seen · notify_managers_weekly
 ```
 
-**새로 모을 데이터가 없다.** `game_scores` · `game_levels` · `daily_habits` ·
-`measurements` · `med_doses` · `family_answers` 에 이미 쌓이고 있다.
-어머니에게는 지속의 이유를, 자녀에게는 해석을 준다.
-일요일에만 뜨니 화면이 복잡해지지 않는다.
+`concerns[]`(눈여겨볼 것)은 **자녀에게만** 보낸다.
 
-### 2. 사진에 이야기 붙이기
+### 2. 사진에 이야기 붙이기 ← 다음에 할 것
 
 앨범 사진에 "이 사진, 언제 어디서 찍은 거예요?" 를 물어 답을 사진 설명으로 남긴다.
 사진은 회상의 표준 도구이고 텍스트 질문보다 훨씬 강하게 기억을 연다.
@@ -212,17 +276,26 @@ GitHub Actions 도 가능하지만 private 레포는 15분 간격이면 무료 �
 다만 `(app)/layout` 이 `requireSenior()` 라 자녀는 게임 화면에 못 들어간다 —
 역할 분리를 건드려야 해서 위험이 있다.
 
-### 상식 퀴즈 은행 확충 (별도 축)
+### 상식 퀴즈 은행 확충 — 1차 완료
 
 지식 문제는 난이도 조절이 안 되므로 **새 문제가 계속 나오는 것**이 유일한 축이다.
-현재 170문구 → 하루 24문제면 7일 무중복. 500문항대면 3주.
+
+```
+상식 퀴즈   170 → 464 문구   (단답 156 + 지식표 7개에서 유도 308)
+단어 맞추기  45 → 100
+오늘의 한 가지 42 → 84       (6개 분류 · 94일 안에 전부 한 번씩)
+```
+
+하루 24문제면 **19일 무중복**. 더 키울 때 지식표(`lib/games/quiz-facts.ts`)에
+행을 넣으면 앞뒤 양방향 두 문구가 자동으로 나온다.
 
 **런타임 LLM 생성은 반대다** — 고령자에게 틀린 사실을 정답으로 내면 신뢰가 무너진다.
 오프라인 배치 생성 → 사람 검수 → 커밋이 맞다.
 서버 출제 구조(`quiz-bank.ts` 가 `server-only`)가 있어 번들 걱정 없이 키울 수 있다.
 
-단어 맞추기도 45건이라 2일차부터 일부 겹친다. 다만 **오답을 무작위로 뽑으면 안 된다** —
-연상 게임이라 "연필"에 "종이" 같은 오답이 섞이면 정답이 두 개가 된다. 손으로 골라야 한다.
+**오답을 무작위로 뽑으면 안 된다.** 연상 게임이라 "연필"에 "종이" 같은 오답이
+섞이면 정답이 두 개가 된다. 실제로 이 함정에 한 번 빠졌다(바늘→실/골무,
+가위→종이/실). `npm test` 가 두 은행의 문구·정답 중복을 검사한다.
 
 ---
 
@@ -252,6 +325,15 @@ GitHub Actions 도 가능하지만 private 레포는 15분 간격이면 무료 �
 - **`quiz_seen.qid` 를 바꾸지 말 것.** 바꾸면 그 문항의 출제 이력이 리셋된다
 - **가족 회상 질문을 채점하지 말 것.** 정답 컬럼·점수·포인트가 없다.
   목적이 "맞히기" 가 아니라 "생각하게 하기" 다
+- **seed 문구에 특정 가족의 이름을 넣지 말 것.** `family_questions.sql` 은
+  모든 가족이 쓰는 공용 파일이다. 자녀는 `{자녀}` 자리표시자로, 나머지는
+  관계로 부른다. `npm test` 가 이름을 잡는다
+- **`어머니`·`아버지` 를 질문 문구에 쓰지 말 것.** "어머니" 는 자녀가 읽는 분을
+  부르는 말이라 본인의 어머니 뜻으로 쓰면 겹치고, "아버지" 는 배우자와 본인의
+  아버지 둘 다로 읽혔다. `남편`·`엄마`·`아빠` 로 고정했다 (`시어머니` 는 예외)
+- **`git stash` 를 쓰지 말 것.** 파일 하나를 되돌릴 때는 `git checkout -- <파일>`.
+  이 레포에는 커밋 안 된 변경이 19개 파일 있어서 stash 가 전부 말려 들어간다.
+  실제로 한 번 날렸고 `git fsck --dangling` 으로 겨우 찾았다
 
 ### 설계 결정
 
@@ -277,13 +359,18 @@ Tailwind 를 설치했지만 유틸리티 클래스는 쓰지 않는다. 전부 
 ### 테스트
 
 ```bash
-npm test          # 46개
+npm test          # 89개
 npm run test:watch
 ```
 
-`lib/games/levels·engine·quiz-bank` 와 `lib/habits` 는 순수 함수라 테스트로
-성질을 고정해 뒀다. 난이도 숫자를 바꿔도 이걸 돌리면 확인된다.
+`lib/games/levels·engine·quiz-bank` 와 `lib/habits`, `lib/korean` 은 순수 함수라
+테스트로 성질을 고정해 뒀다. 난이도 숫자를 바꿔도 이걸 돌리면 확인된다.
 `server-only` 는 테스트에서 빈 모듈로 대체한다(`vitest.config.mts`).
+
+`tests/recall-seed.test.ts` 는 **SQL 파일을 읽어서** 검사한다 — 문구 중복,
+홑따옴표, 특정 가족 이름, `{자녀}` 뒤 조사 쌍, 패치와 seed 의 정합성.
+seed 는 한 번 DB 에 들어가면 문구를 고치는 데 별도 `update` 가 필요하므로
+(prompt 가 unique 키다) 들어가기 전에 잡는 게 값이 크다.
 
 ---
 
@@ -293,15 +380,20 @@ npm run test:watch
 lib/games/quiz-bank.ts     퀴즈·단어 문제 은행 + 출제 (server-only)
 lib/games/levels.ts        레벨 곡선 · 계단식 조정 · 포인트 배수
 lib/games/engine.ts        계산·색깔·짝맞추기·순서기억 생성기 (클라 공용)
+lib/games/quiz-facts.ts    지식표 7개 (수도·속담·절기…) — 양방향으로 문구 유도
 lib/games/serve.ts         이력 조회 → 출제 → 기록
-lib/habits.ts              오늘의 한 가지 42개 + 날짜 기반 출제
-lib/recall/queries.ts      오늘의 질문 선택 · 자녀 피드
+lib/habits.ts              오늘의 한 가지 84개 + 날짜 기반 출제
+lib/recall/queries.ts      오늘의 질문 선택 · 자녀 피드 · 자녀 호칭
+lib/weekly/queries.ts      주간 집계 · 눈여겨볼 것(자녀 전용)
+lib/korean.ts              받침 판정 · 조사 선택 · {자녀} 치환
+lib/push/family.ts         관리자에게 즉시 푸시 (크론 우회)
 components/ui/styles.ts    공용 스타일 조각
 
 app/(app)/recall/          어머니 회상 화면
 app/(app)/home/habit-card  오늘의 한 가지
 app/connect/notice-banner  자녀 알림 배너
 app/connect/notify-toggle  자녀 알림 켜기 (설정 화면이 없어서 대시보드에 둠)
+app/connect/[seniorId]/recall/child-label   자녀 호칭 설정 (미리보기 포함)
 
 supabase/migrations/0015   quiz_seen — 출제 이력
                     0016   family_questions · family_answers
@@ -310,5 +402,8 @@ supabase/migrations/0015   quiz_seen — 출제 이력
                     0019   daily_habits
                     0020   notify_managers 즉시 발송용 수정
                     0021   point_balance — 잔액 집계
-supabase/seed/family_questions.sql   회상 질문 83개
+                    0022   weekly_report_seen · notify_managers_weekly
+                    0023   family_links.child_label   ← 아직 안 돌림
+supabase/seed/family_questions.sql            회상 질문 111개 (비활성 7 포함)
+supabase/seed/family_questions_patch_01.sql   기존 DB 문구 보정 ← 아직 안 돌림
 ```

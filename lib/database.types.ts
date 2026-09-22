@@ -38,6 +38,8 @@ export type FamilyLink = {
   manager_id: string;
   status: "active" | "paused";
   created_at: string;
+  /** 어머니 화면에 보일 자녀 호칭 (0023). 읽히는 그대로 — 형진이·아들·큰딸. */
+  child_label: string | null;
 };
 
 export type ConnectCode = {

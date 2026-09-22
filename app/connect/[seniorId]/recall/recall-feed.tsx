@@ -315,6 +315,9 @@ function AddQuestion({ seniorId, questionCount }: { seniorId: string; questionCo
         >
           답을 맞히는 게 아니라 떠올리시게 하는 게 목적이에요. &ldquo;몇 년도에?&rdquo;보다
           &ldquo;어땠어요?&rdquo;가 좋습니다.
+          <br />
+          나를 가리킬 때는 <code>{"{자녀}"}</code> 라고 적으면 위에서 정한 호칭으로 바뀝니다.
+          조사가 붙는 자리는 <code>{"{자녀}이/가"}</code> 처럼 적어주세요.
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate } from "@/lib/time";
+import { fillChildLabel } from "@/lib/korean";
 import type { FamilyAnswer, FamilyQuestion } from "@/lib/database.types";
 
 /** 오늘의 질문 한 개. 이미 답하셨으면 그 질문과 답을 함께 준다. */
@@ -12,6 +13,44 @@ export type TodayRecall = {
   /** 이 질문에 예전에 답한 기록 (오늘 것 제외, 최신순). 회상은 반복이 값이므로 보여준다. */
   past: FamilyAnswer[];
 };
+
+/**
+ * 어머니 화면에 쓸 자녀 호칭.
+ * family_links.child_label → 관리자 이름 → "아이" 순으로 떨어진다.
+ * 이름을 그대로 쓰면 "형진 좋아하는" 처럼 어색하므로 관리자가 별칭 칸에
+ * "형진이" 로 적을 수 있게 해 뒀다(0023).
+ */
+export async function childLabelFor(seniorId: string): Promise<string> {
+  const { stored, fallback } = await childLabelParts(seniorId);
+  return stored || fallback;
+}
+
+/**
+ * 호칭의 저장값과 기본값을 따로 준다 — 관리자 설정 화면에서 "아직 안 정했음"을
+ * 보여주려면 둘을 구분해야 한다. 출제에는 childLabelFor 를 쓴다.
+ */
+export async function childLabelParts(
+  seniorId: string,
+): Promise<{ stored: string | null; fallback: string }> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("family_links")
+    .select("child_label, manager_id")
+    .eq("senior_id", seniorId)
+    .eq("status", "active")
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  if (!data) return { stored: null, fallback: "아이" };
+
+  const stored = data.child_label?.trim() || null;
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", data.manager_id)
+    .maybeSingle();
+  return { stored, fallback: prof?.name?.trim() || "아이" };
+}
 
 function kstDayRange() {
   const today = formatKstIsoDate();
@@ -36,6 +75,7 @@ function kstDayRange() {
  */
 export async function getTodayRecall(seniorId: string): Promise<TodayRecall | null> {
   const supabase = await createClient();
+  const label = await childLabelFor(seniorId);
 
   const { data: questions } = await supabase
     .from("family_questions")
@@ -58,7 +98,10 @@ export async function getTodayRecall(seniorId: string): Promise<TodayRecall | nu
   const pick = (q: FamilyQuestion): TodayRecall => {
     const mine = all.filter((a) => a.question_id === q.id);
     const todayAnswer = mine.find((a) => a.answered_at >= start && a.answered_at <= end) ?? null;
-    return { question: q, todayAnswer, past: mine.filter((a) => a.id !== todayAnswer?.id) };
+    // {자녀} 자리표시자를 호칭으로 바꿔 내려보낸다. DB 에는 자리표시자가 남는다 —
+    // 호칭을 바꾸면 기존 질문도 같이 바뀌어야 하기 때문이다.
+    const question = { ...q, prompt: fillChildLabel(q.prompt, label) };
+    return { question, todayAnswer, past: mine.filter((a) => a.id !== todayAnswer?.id) };
   };
 
   // 1. 오늘 이미 답했다면 그 질문.
@@ -127,10 +170,11 @@ export async function getRecallFeed(seniorId: string, limit = 50): Promise<Recal
     .select("id, prompt")
     .in("id", Array.from(new Set(answers.map((a) => a.question_id))));
 
+  const label = await childLabelFor(seniorId);
   const promptById = new Map((questions ?? []).map((q) => [q.id, q.prompt]));
   return answers.map((answer) => ({
     answer,
-    prompt: promptById.get(answer.question_id) ?? "(삭제된 질문)",
+    prompt: fillChildLabel(promptById.get(answer.question_id) ?? "(삭제된 질문)", label),
   }));
 }
 
