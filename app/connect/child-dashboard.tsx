@@ -181,6 +181,31 @@ function SeniorCard({ senior: s }: { senior: SeniorView }) {
         <Icon name="chevron-right" size={20} color={s.unrepliedRecall > 0 ? "#C98A2E" : "var(--c-faint)"} />
       </Link>
 
+      {/* 게임 추이 — 자녀만 보는 화면이다. 어머니 쪽에는 링크를 걸지 않는다.
+          자기 인지 기능이 떨어지는 그래프는 해롭다. */}
+      <Link
+        href={`/connect/${s.seniorId}/trend`}
+        style={{
+          marginTop: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          height: 46,
+          borderRadius: 14,
+          padding: "0 14px",
+          border: "1px solid var(--c-line)",
+          background: "var(--c-screen)",
+          color: "var(--c-text)",
+          fontSize: "calc(14px*var(--fs))",
+          fontWeight: 800,
+          textDecoration: "none",
+        }}
+      >
+        <Icon name="thunder-fill" size={20} color="var(--c-sub)" />
+        <span style={{ flex: 1 }}>게임 추이</span>
+        <Icon name="chevron-right" size={20} color="var(--c-faint)" />
+      </Link>
+
       {/* 측정 최신값 */}
       {MEASURE_KINDS.some((m) => s.measurements[m.kind]) && (
         <div style={{ marginTop: 12 }}>

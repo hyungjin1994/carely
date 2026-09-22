@@ -2,20 +2,12 @@
 
 > 마지막 갱신: 2026-09-22
 
-마이그레이션 `0015`~`0023` + `family_questions_patch_01.sql` 적용됨.
-`0024_photo_recall.sql` 은 **아직 안 돌렸다.**
-테스트 89개 통과(`npm test`), 레포 전체 lint 에러 0.
+마이그레이션 `0015`~`0024` + `family_questions_patch_01.sql` 전부 적용됨.
+테스트 110개 통과(`npm test`), 레포 전체 lint 에러 0.
 
 ---
 
 ## 지금 막힌 것
-
-### `0024_photo_recall.sql` 실행
-
-사진 회상을 켜는 마이그레이션. Supabase SQL Editor 에 붙여넣고 돌린다.
-돌리기 전까지는 `/connect` → 이야기 → 질문 추가에서 사진 칸이 안 뜨고,
-`photo_id` 컬럼이 없어 질문 추가 자체가 실패한다.
-자세한 내용은 아래 "사진에 이야기 붙이기".
 
 ### 알림 키 (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
 
@@ -252,7 +244,7 @@ lib/weekly/queries.ts   집계 · weeklyDigest · hasSeenWeekly
 
 `concerns[]`(눈여겨볼 것)은 **자녀에게만** 보낸다.
 
-### 2. 사진에 이야기 붙이기 — 했음 (`0024` 실행 필요)
+### 2. 사진에 이야기 붙이기 — 했음
 
 자녀가 앨범에서 사진을 골라 질문을 낸다. 어머니 화면에 사진이 질문 위에 크게
 뜨고, 답은 기존 회상 답변으로 쌓인다. 사진은 회상의 표준 도구이고 글만 있는
@@ -276,18 +268,43 @@ lib/weekly/queries.ts   집계 · weeklyDigest · hasSeenWeekly
 지우면 `family_answers` 까지 따라가서 **어머니가 해주신 이야기가 사라진다.**
 사진 한 장 정리했다가 이야기를 잃는 건 받아들일 수 없다.
 
-### 3. 인지 추이 (자녀 전용)
+### 3. 인지 추이 (자녀 전용) — 했음 (마이그레이션 없음)
 
-`game_levels` 가 쌓이면 시간에 따른 변화가 보인다.
-**특정 게임만 떨어지는 게 의미 있는 신호다** — 색깔만 하락이면 억제·간섭통제,
-순서 기억만 하락이면 작업기억 쪽.
+`/connect/[seniorId]/trend`. 자녀 대시보드 "게임 추이" 버튼.
+**어머니 쪽에는 링크가 없다.** 자기 인지 기능이 떨어지는 그래프는 해롭다.
 
-지켜야 할 것 셋:
-- **어머니에게 절대 보여주지 않는다.** 자기 인지 기능이 떨어지는 그래프는 해롭다
-- "인지 기능 저하" 가 아니라 "이 게임이 요즘 어려워지셨어요" 로 쓴다
-- **최소 4주 추세로만** 판단한다. 컨디션·수면·기분에 따라 하루하루 크게 흔들린다
+```
+lib/trend/cognitive.ts   순수 함수 — 주 버킷·창 비교·판정·문구
+lib/trend/queries.ts     game_scores 12주치 조회
+```
 
-레벨 데이터가 이제 막 쌓이기 시작했으니 몇 달 뒤에 값이 생긴다.
+`game_levels` 를 쓰지 않는다. 현재 레벨만 들고 있어 추이를 낼 수 없고 RLS 도 본인
+전용이다(0017). `game_scores.difficulty` 에 판마다 그때 레벨이 문자열로 남고
+자녀 읽기가 열려 있다(0003 `game_scores_family_read`). 그래서 새 테이블이 없다.
+
+**정답률이 아니라 레벨을 본다.** 레벨 게임 4종은 계단식 조정이 성공률을
+60~85%에 붙잡아 두므로 실력이 늘든 줄든 정답률은 그대로다. 움직이는 건 레벨이다.
+상식 퀴즈·단어 맞추기는 레벨 축이 없어 정답률을 본다. 이걸 뒤집으면 신호가
+전부 사라진다.
+
+판정 기준 (`lib/trend/cognitive.ts` 상수):
+
+```
+HISTORY_WEEKS         12   화면에 그리는 기간
+TREND_WINDOW_WEEKS     4   최근 4주 vs 그 앞 4주
+MIN_PLAYS_PER_WINDOW   8   창당 최소 판수. 미달이면 판단 안 함
+LEVEL_DELTA          1.5   계단식 조정이 한 판에 ±1 이라 1.0 은 노이즈
+RATE_DELTA           0.1
+```
+
+- **한 종목만 내려간 것은 경고하지 않는다.** 그 게임이 재미없어지신 것으로도
+  설명된다. 두 종목 이상이 함께 움직일 때만 "여쭤보실 만하다" 고 말한다
+- 최고 레벨(30)에 붙어 있으면 `ceiling` — 더 오를 칸이 없어 "비슷함" 이 신호가 아니다
+- 문구에 "인지 기능 저하" 를 쓰지 않는다. 자녀가 할 일은 같고 진단이 아니다.
+  잠·몸 상태로도 똑같이 내려간다는 걸 화면에 같이 적었다
+
+숫자를 바꾸면 `npm test`(`tests/trend.test.ts`)가 성질을 확인한다 — 정답률만
+떨어지고 레벨이 그대로면 `flat` 이어야 한다는 것까지 고정해 뒀다.
 
 ### 4. 가족 대항 게임
 
@@ -379,7 +396,7 @@ Tailwind 를 설치했지만 유틸리티 클래스는 쓰지 않는다. 전부 
 ### 테스트
 
 ```bash
-npm test          # 89개
+npm test          # 110개
 npm run test:watch
 ```
 
@@ -405,6 +422,8 @@ lib/games/serve.ts         이력 조회 → 출제 → 기록
 lib/habits.ts              오늘의 한 가지 84개 + 날짜 기반 출제
 lib/recall/queries.ts      오늘의 질문 선택 · 자녀 피드 · 자녀 호칭 · 앨범 사진
 lib/weekly/queries.ts      주간 집계 · 눈여겨볼 것(자녀 전용)
+lib/trend/cognitive.ts     인지 추이 판정 (순수 함수)
+lib/trend/queries.ts       game_scores 12주치 조회
 lib/korean.ts              받침 판정 · 조사 선택 · {자녀} 치환
 lib/push/family.ts         관리자에게 즉시 푸시 (크론 우회)
 components/ui/styles.ts    공용 스타일 조각
@@ -414,6 +433,7 @@ app/(app)/home/habit-card  오늘의 한 가지
 app/connect/notice-banner  자녀 알림 배너
 app/connect/notify-toggle  자녀 알림 켜기 (설정 화면이 없어서 대시보드에 둠)
 app/connect/[seniorId]/recall/child-label   자녀 호칭 설정 (미리보기 포함)
+app/connect/[seniorId]/trend/              인지 추이 (자녀 전용)
 
 supabase/migrations/0015   quiz_seen — 출제 이력
                     0016   family_questions · family_answers
@@ -424,7 +444,7 @@ supabase/migrations/0015   quiz_seen — 출제 이력
                     0021   point_balance — 잔액 집계
                     0022   weekly_report_seen · notify_managers_weekly
                     0023   family_links.child_label
-                    0024   family_questions.photo_id — 사진 회상  ← 아직 안 돌림
+                    0024   family_questions.photo_id — 사진 회상
 supabase/seed/family_questions.sql            회상 질문 111개 (비활성 7 포함)
 supabase/seed/family_questions_patch_01.sql   기존 DB 문구 보정 (돌렸음)
 ```
