@@ -35,3 +35,6 @@ next-env.d.ts
 /supabase/.temp
 
 .vercel
+
+# VAPID 키 (scripts/vapid-keys.mjs 가 만든다) — 커밋 금지
+vapid-keys.txt
