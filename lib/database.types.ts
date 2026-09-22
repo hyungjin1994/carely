@@ -174,6 +174,13 @@ export type Notification = {
   read_at: string | null;
 };
 
+/** 주간 리포트를 본 주차. week_start 는 KST 기준 그 주 월요일. */
+export type WeeklyReportSeen = {
+  user_id: string;
+  week_start: string;
+  seen_at: string;
+};
+
 /** 오늘의 한 가지 실천 기록. habit_id 는 lib/habits.ts 의 행동 id. */
 export type DailyHabit = {
   user_id: string;
@@ -252,6 +259,7 @@ export type Database = {
       family_answers: Table<FamilyAnswer>;
       game_levels: Table<GameLevel>;
       daily_habits: Table<DailyHabit>;
+      weekly_report_seen: Table<WeeklyReportSeen>;
     };
     Functions: {
       award_points: {
@@ -269,6 +277,10 @@ export type Database = {
       mark_quiz_seen: { Args: { p_qids: string[] }; Returns: undefined };
       notify_managers: { Args: { p_kind: string; p_title: string; p_body: string }; Returns: number };
       point_balance: { Args: { p_user: string }; Returns: number };
+      notify_managers_weekly: {
+        Args: { p_week_start: string; p_title: string; p_body: string };
+        Returns: number;
+      };
     };
   };
 };

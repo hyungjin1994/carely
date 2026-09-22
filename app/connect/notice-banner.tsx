@@ -11,6 +11,7 @@ import type { UnreadNotice } from "@/lib/queries";
 /** 알림 종류별 색·아이콘. 환전은 돈이 걸려 있어 가장 눈에 띄게. */
 const KIND_STYLE: Record<string, { color: string; bg: string; border: string; icon: string }> = {
   exchange: { color: "#9C5800", bg: "#FFF6E9", border: "#FFE0B2", icon: "coins-fill" },
+  weekly: { color: "#123A6B", bg: "#F2F8FF", border: "#CDE3FF", icon: "sparkle-fill" },
 };
 const DEFAULT_STYLE = { color: "#123A6B", bg: "#F2F8FF", border: "#CDE3FF", icon: "bell-fill" };
 
@@ -80,7 +81,15 @@ export function NoticeBanner({ notices }: { notices: UnreadNotice[] }) {
                 {formatKstHeader(new Date(n.at), "month-day")}
               </span>
             </div>
-            <div style={{ fontSize: "calc(15px*var(--fs))", color: st.color, lineHeight: 1.55 }}>
+            {/* 주간 리포트는 여러 줄이라 줄바꿈을 살린다. */}
+            <div
+              style={{
+                fontSize: "calc(15px*var(--fs))",
+                color: st.color,
+                lineHeight: 1.55,
+                whiteSpace: "pre-wrap",
+              }}
+            >
               {n.body}
             </div>
             <button

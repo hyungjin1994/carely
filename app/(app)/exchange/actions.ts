@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { sendPushToUser, type PushPayload } from "@/lib/push/send";
+import { pushToManagers } from "@/lib/push/family";
 import { getBalance } from "@/lib/queries";
 
 export type ExchangeActionState = { ok?: boolean; error?: string };
@@ -46,30 +45,4 @@ export async function requestExchange(amount: number): Promise<ExchangeActionSta
 
   revalidatePath("/exchange");
   return { ok: true };
-}
-
-/**
- * 연결된 자녀에게 지금 바로 푸시를 보낸다.
- *
- * 크론을 거치지 않는 이유: Vercel 무료 플랜은 크론이 하루 1회라(vercel.json)
- * 예약 발송에 맡기면 최대 13시간 늦는다. 사건 발생 시점에 보내면 되는 알림은
- * 크론이 필요 없고, 이렇게 하면 무료로 즉시 도착한다.
- *
- * VAPID 키가 없거나 구독이 없으면 sendPushToUser 가 0 을 돌려주고 조용히 끝난다.
- * 그래도 앱 내 알림 배너는 그대로 뜨므로 기능이 죽지 않는다.
- */
-async function pushToManagers(seniorId: string, payload: PushPayload): Promise<void> {
-  try {
-    const admin = createAdminClient();
-    const { data: links } = await admin
-      .from("family_links")
-      .select("manager_id")
-      .eq("senior_id", seniorId)
-      .eq("status", "active");
-    await Promise.all(
-      (links ?? []).map((l) => sendPushToUser(admin, l.manager_id, payload)),
-    );
-  } catch {
-    // 서비스 키 미설정 등 — 알림 배너로 대체되므로 조용히 넘어간다.
-  }
 }

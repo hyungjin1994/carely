@@ -72,3 +72,24 @@ export function greeting(now: Date = new Date()): Greeting {
     return { t: "좋은 저녁이에요", icon: "moon", g: "linear-gradient(135deg,#7D5EF7,#5B37ED)" };
   return { t: "편안한 밤 되세요", icon: "moon", g: "linear-gradient(135deg,#37383C,#0F2A66)" };
 }
+
+/**
+ * KST 기준 그 주 월요일 (YYYY-MM-DD).
+ * 주간 리포트의 주차 키. 일요일도 그 주에 속한다(월~일).
+ */
+export function kstWeekStart(now: Date = new Date()): string {
+  const { weekday } = kstParts(now);
+  // weekday: 0=일 … 6=토. 월요일까지 며칠 뒤로 가야 하는지.
+  const back = weekday === 0 ? 6 : weekday - 1;
+  const iso = formatKstIsoDate(now);
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - back);
+  return d.toISOString().slice(0, 10);
+}
+
+/** 지난주 월요일. 비교용. */
+export function kstPrevWeekStart(now: Date = new Date()): string {
+  const d = new Date(`${kstWeekStart(now)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 7);
+  return d.toISOString().slice(0, 10);
+}

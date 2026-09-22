@@ -3,25 +3,30 @@ import Image from "next/image";
 import { ensureProfile } from "@/lib/auth/dal";
 import { getTodayTodos, getPointsSummary, getFamilySummary, getTodayHabit } from "@/lib/queries";
 import { getTodayRecall } from "@/lib/recall/queries";
+import { getWeeklyReport, hasSeenWeekly } from "@/lib/weekly/queries";
 import { getSignedPhotoUrl } from "@/lib/storage";
 import { greeting, formatKstHeader } from "@/lib/time";
 import { fmt } from "@/lib/utils";
 import { Icon } from "@/components/common/icon";
 import { TodayTodos } from "./today-todos";
 import { HabitCard } from "./habit-card";
+import { WeeklySheet } from "./weekly-sheet";
 
 // 인증·사용자별 데이터 — 항상 동적.
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const profile = await ensureProfile();
-  const [todos, points, family, recall, habit] = await Promise.all([
+  const [todos, points, family, recall, habit, seenWeekly] = await Promise.all([
     getTodayTodos(),
     getPointsSummary(),
     getFamilySummary(profile.id),
     getTodayRecall(profile.id),
     getTodayHabit(),
+    hasSeenWeekly(profile.id),
   ]);
+  // 이번 주 시트를 아직 안 봤을 때만 집계한다 — 매번 계산하면 홈이 느려진다.
+  const weekly = seenWeekly ? null : await getWeeklyReport(profile.id);
   const photoUrl = await getSignedPhotoUrl(family.photoPath);
 
   const gr = greeting();
@@ -34,6 +39,10 @@ export default async function HomePage() {
 
   return (
     <div style={{ padding: "4px 22px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* 주간 리포트 — 주 1회 자동으로 뜬다. 지속 동기가 목적이라 안 보면
+          의미가 없어서 카드가 아니라 시트로 띄운다(weekly-sheet.tsx 주석 참고). */}
+      {weekly && <WeeklySheet report={weekly} name={name} />}
+
       {/* 인사말 */}
       <div
         style={{

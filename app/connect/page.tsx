@@ -6,6 +6,7 @@ import { getUnrepliedCount } from "@/lib/recall/queries";
 import type { Role } from "@/lib/database.types";
 import { ConnectEntry } from "./connect-entry";
 import { ManagerDashboard, type SeniorView } from "./child-dashboard";
+import { ensureWeeklyNotice } from "./actions";
 
 // 인증·사용자별 데이터 — 항상 동적.
 export const dynamic = "force-dynamic";
@@ -71,6 +72,10 @@ export default async function ConnectPage() {
       };
     }),
   );
+
+  // 어머니가 그 주에 앱을 안 열면 주간 리포트가 안 만들어진다. 여기서 보완한다.
+  // 이미 있으면 아무 일도 하지 않는다.
+  for (const s of seniors) await ensureWeeklyNotice(s.seniorId, s.name);
 
   const notices = await getUnreadNotices();
   // 알림 켜기 배너 표시 여부. 구독이 없으면 푸시를 보낼 대상이 없다.

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/common/icon";
 import { showToast } from "@/components/common/toast";
 import { subscribePush } from "@/lib/push/subscribe-client";
-import { setManagerNotify } from "@/app/connect/actions";
+import { sendTestPush, setManagerNotify } from "@/app/connect/actions";
 
 /**
  * 관리자 알림 켜기.
@@ -22,7 +22,11 @@ export function NotifyToggle({ notifyOn, subscribed }: { notifyOn: boolean; subs
   const [isPending, startTransition] = useTransition();
   const [hidden, setHidden] = useState(false);
 
-  if (hidden || (notifyOn && subscribed)) return null;
+  // 이미 켜져 있으면 테스트 버튼만 작게 남긴다 — 실제로 오는지 확인할 수단이
+  // 없으면 환전 신청이 들어와야 비로소 알게 된다.
+  if (hidden || (notifyOn && subscribed)) {
+    return <TestPushRow />;
+  }
 
   const enable = () => {
     startTransition(async () => {
@@ -94,5 +98,48 @@ export function NotifyToggle({ notifyOn, subscribed }: { notifyOn: boolean; subs
         켜기
       </button>
     </div>
+  );
+}
+
+/**
+ * 알림이 실제로 도착하는지 확인하는 버튼.
+ * iOS 는 홈 화면에 추가해야 웹푸시가 되는데 그걸 모르고 "안 온다" 로 끝나기 쉽다.
+ * 여기서 바로 확인되면 원인을 좁힐 수 있다.
+ */
+function TestPushRow() {
+  const [isPending, startTransition] = useTransition();
+  const [sent, setSent] = useState(false);
+
+  const test = () =>
+    startTransition(async () => {
+      const res = await sendTestPush();
+      if (res.error) showToast(res.error);
+      else {
+        setSent(true);
+        showToast("보냈어요. 알림이 오는지 확인해 주세요");
+      }
+    });
+
+  return (
+    <button
+      onClick={test}
+      disabled={isPending || sent}
+      style={{
+        border: "1px solid var(--c-line)",
+        background: "var(--c-card)",
+        borderRadius: 14,
+        padding: "10px 14px",
+        marginBottom: 16,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        fontSize: "calc(13px*var(--fs))",
+        fontWeight: 700,
+        color: "var(--c-sub)",
+      }}
+    >
+      <Icon name="bell" size={18} color="var(--c-faint)" />
+      {sent ? "테스트 알림을 보냈어요" : "알림 테스트 보내기"}
+    </button>
   );
 }
