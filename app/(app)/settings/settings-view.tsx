@@ -74,9 +74,12 @@ export function SettingsView({
     setNotify(next);
     save({ notify_on: next });
     if (next) {
-      subscribePush().then((res) => {
-        if (!res.ok) showToast(res.reason ?? "알림을 켤 수 없어요");
-      });
+      // subscribePush 는 throw 하지 않지만 rejection 을 흘리지 않도록 catch 한다.
+      subscribePush()
+        .then((res) => {
+          if (!res.ok) showToast(res.reason ?? "알림을 켤 수 없어요");
+        })
+        .catch(() => showToast("알림을 켤 수 없었어요"));
     }
   };
 

@@ -30,17 +30,23 @@ export function NotifyToggle({ notifyOn, subscribed }: { notifyOn: boolean; subs
 
   const enable = () => {
     startTransition(async () => {
-      // 브라우저 권한 → 구독 저장. 실패 이유를 그대로 보여준다 —
-      // "지원하지 않는 기기", "권한 거부" 등 사용자가 조치할 수 있는 것들이다.
-      const res = await subscribePush();
-      if (!res.ok) {
-        showToast(res.reason ?? "알림을 켤 수 없어요");
-        return;
+      // subscribePush 는 throw 하지 않도록 만들어져 있지만, 여기서도 감싼다.
+      // 전에 예외가 startTransition 밖으로 새어 iOS 표준형에서 앱이 죽었다.
+      try {
+        // 실패 이유를 그대로 보여준다 — "홈 화면에 추가", "권한 허용" 처럼
+        // 사용자가 조치할 수 있는 것들이다.
+        const res = await subscribePush();
+        if (!res.ok) {
+          showToast(res.reason ?? "알림을 켤 수 없어요");
+          return;
+        }
+        await setManagerNotify(true);
+        setHidden(true);
+        showToast("알림을 켰어요");
+        router.refresh();
+      } catch {
+        showToast("알림을 켤 수 없었어요");
       }
-      await setManagerNotify(true);
-      setHidden(true);
-      showToast("알림을 켰어요");
-      router.refresh();
     });
   };
 
