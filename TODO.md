@@ -2,13 +2,20 @@
 
 > 마지막 갱신: 2026-09-22
 
-마이그레이션 `0015`~`0022` 적용됨. `0023_child_label.sql` 은 **아직 안 돌렸다.**
+마이그레이션 `0015`~`0023` + `family_questions_patch_01.sql` 적용됨.
+`0024_photo_recall.sql` 은 **아직 안 돌렸다.**
 테스트 89개 통과(`npm test`), 레포 전체 lint 에러 0.
-커밋은 로컬에만 있고 아직 푸시 전이다.
 
 ---
 
 ## 지금 막힌 것
+
+### `0024_photo_recall.sql` 실행
+
+사진 회상을 켜는 마이그레이션. Supabase SQL Editor 에 붙여넣고 돌린다.
+돌리기 전까지는 `/connect` → 이야기 → 질문 추가에서 사진 칸이 안 뜨고,
+`photo_id` 컬럼이 없어 질문 추가 자체가 실패한다.
+자세한 내용은 아래 "사진에 이야기 붙이기".
 
 ### 알림 키 (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
 
@@ -101,7 +108,7 @@ select p.name, p.notify_on,
 
 ## 손봐야 할 것
 
-### 가족 회상 질문 호칭 ← 제일 먼저 할 것
+### 가족 회상 질문 호칭 — 했음 (`0023` + 패치 실행 완료)
 
 두 가지가 겹쳐 있었다.
 
@@ -122,14 +129,7 @@ select p.name, p.notify_on,
 읽는 분 시점으로 통일했다. 자녀 → `{자녀}` · 배우자 → `남편` ·
 본인의 부모 → `엄마`·`아빠` · 본인은 지칭하지 않는다.
 
-**해야 할 것 — Supabase SQL Editor 에서 순서대로:**
-
-```
-1. supabase/migrations/0023_child_label.sql        family_links.child_label 추가
-2. supabase/seed/family_questions_patch_01.sql     문구 23개 교체 + 새 질문 29개
-```
-
-`2` 는 한 번만 돌리면 되고, 다시 돌려도 안전하다. 끝나면 이렇게 나온다.
+둘 다 돌렸다. 확인 쿼리:
 
 ```sql
 select active, count(*) from public.family_questions group by active;
@@ -138,7 +138,7 @@ select prompt from public.family_questions where prompt like '%형진%';
 --   0행
 ```
 
-**3. 호칭 정하기** — 앱에서 `/connect` → 어머니 → 이야기 → 상단
+**남은 것 — 호칭 정하기** — 앱에서 `/connect` → 어머니 → 이야기 → 상단
 "질문에서 나를 부르는 말". 읽히는 그대로 적는다("형진이"·"아들"·"큰딸").
 비워두면 관리자 이름을 쓰고, 그것도 없으면 "아이" 로 채운다.
 
@@ -252,12 +252,29 @@ lib/weekly/queries.ts   집계 · weeklyDigest · hasSeenWeekly
 
 `concerns[]`(눈여겨볼 것)은 **자녀에게만** 보낸다.
 
-### 2. 사진에 이야기 붙이기 ← 다음에 할 것
+### 2. 사진에 이야기 붙이기 — 했음 (`0024` 실행 필요)
 
-앨범 사진에 "이 사진, 언제 어디서 찍은 거예요?" 를 물어 답을 사진 설명으로 남긴다.
-사진은 회상의 표준 도구이고 텍스트 질문보다 훨씬 강하게 기억을 연다.
-`photos.caption` 이 이미 있어 스키마 변경이 거의 없다.
-가족 회상 질문(현재 텍스트만)과 자연스럽게 합쳐진다.
+자녀가 앨범에서 사진을 골라 질문을 낸다. 어머니 화면에 사진이 질문 위에 크게
+뜨고, 답은 기존 회상 답변으로 쌓인다. 사진은 회상의 표준 도구이고 글만 있는
+질문보다 훨씬 강하게 기억을 연다.
+
+**새 테이블을 만들지 않았다.** `family_questions.photo_id` 한 칸이면 오늘의 질문
+선택 · 답변 저장 · 자녀 답장 · 알림 · 주간 리포트가 전부 그대로 돌아간다.
+`photos.caption` 에 답을 쓰는 쪽은 택하지 않았다 — caption 은 사진 주인만 고칠 수
+있어서(0003) 자녀가 올린 사진에 어머니가 답을 쓸 수 없다.
+
+같이 따라온 것 둘:
+
+- **중복 키에 사진이 들어갔다.** `unique (senior_id, prompt)` 였는데 사진 회상에서
+  제일 잘 먹는 문구는 사진마다 같다. "이 사진, 어디서 찍은 거예요?" 를 두 번째
+  사진에 쓰면 막혔다. 이제 `(senior_id, prompt, photo_id) nulls not distinct` —
+  글 질문은 예전처럼 문구로 중복을 막고, 사진이 다르면 같은 문구도 통과한다.
+- **안 답한 질문끼리는 나중에 만든 것이 먼저 나온다.** 방금 낸 질문이 seed 100여
+  개 뒤로 밀려 몇 달 뒤에 나오면 낸 사람 입장에선 안 들어간 것과 구분이 안 된다.
+
+사진이 지워지면 그 질문은 `active = false` 로 내린다(트리거). `cascade` 로 질문을
+지우면 `family_answers` 까지 따라가서 **어머니가 해주신 이야기가 사라진다.**
+사진 한 장 정리했다가 이야기를 잃는 건 받아들일 수 없다.
 
 ### 3. 인지 추이 (자녀 전용)
 
@@ -386,7 +403,7 @@ lib/games/engine.ts        계산·색깔·짝맞추기·순서기억 생성기 
 lib/games/quiz-facts.ts    지식표 7개 (수도·속담·절기…) — 양방향으로 문구 유도
 lib/games/serve.ts         이력 조회 → 출제 → 기록
 lib/habits.ts              오늘의 한 가지 84개 + 날짜 기반 출제
-lib/recall/queries.ts      오늘의 질문 선택 · 자녀 피드 · 자녀 호칭
+lib/recall/queries.ts      오늘의 질문 선택 · 자녀 피드 · 자녀 호칭 · 앨범 사진
 lib/weekly/queries.ts      주간 집계 · 눈여겨볼 것(자녀 전용)
 lib/korean.ts              받침 판정 · 조사 선택 · {자녀} 치환
 lib/push/family.ts         관리자에게 즉시 푸시 (크론 우회)
@@ -406,7 +423,8 @@ supabase/migrations/0015   quiz_seen — 출제 이력
                     0020   notify_managers 즉시 발송용 수정
                     0021   point_balance — 잔액 집계
                     0022   weekly_report_seen · notify_managers_weekly
-                    0023   family_links.child_label   ← 아직 안 돌림
+                    0023   family_links.child_label
+                    0024   family_questions.photo_id — 사진 회상  ← 아직 안 돌림
 supabase/seed/family_questions.sql            회상 질문 111개 (비활성 7 포함)
-supabase/seed/family_questions_patch_01.sql   기존 DB 문구 보정 ← 아직 안 돌림
+supabase/seed/family_questions_patch_01.sql   기존 DB 문구 보정 (돌렸음)
 ```

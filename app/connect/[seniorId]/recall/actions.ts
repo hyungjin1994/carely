@@ -57,11 +57,17 @@ export async function replyRecall(input: {
   return {};
 }
 
-/** 질문을 새로 낸다. 83개 seed 는 3개월치이고, 그 뒤로는 직접 채워야 한다. */
+/**
+ * 질문을 새로 낸다. seed 111개는 넉넉하지만 사진 질문은 전부 여기서 나온다.
+ *
+ * photoId 를 주면 사진 회상 질문이 된다(0024). 사진이 붙은 질문은 어머니 화면에
+ * 사진을 크게 띄운다 — 글보다 사진이 기억을 먼저 연다.
+ */
 export async function addRecallQuestion(input: {
   seniorId: string;
   prompt: string;
   month: number | null;
+  photoId?: string | null;
 }): Promise<{ error?: string }> {
   const ctx = await assertLinked(input.seniorId);
   if (!ctx) return { error: "연결된 가족이 아니에요" };
@@ -69,15 +75,35 @@ export async function addRecallQuestion(input: {
   const prompt = input.prompt.trim().slice(0, MAX_PROMPT);
   if (!prompt) return { error: "질문을 적어주세요" };
 
+  // 사진은 "어머니 것 또는 내가 올린 것" 이어야 한다. RLS 가 남의 사진 읽기를
+  // 막지만, 붙이는 것 자체는 FK 만 통과하면 되므로 여기서 한 번 확인한다.
+  // 볼 수 없는 사진을 붙이면 어머니 화면에 빈 칸이 뜨는 질문이 된다.
+  if (input.photoId) {
+    const { data: photo } = await ctx.supabase
+      .from("photos")
+      .select("id")
+      .eq("id", input.photoId)
+      .in("owner_id", [input.seniorId, ctx.profile.id])
+      .maybeSingle();
+    if (!photo) return { error: "그 사진은 쓸 수 없어요" };
+  }
+
   const { error } = await ctx.supabase.from("family_questions").insert({
     senior_id: input.seniorId,
     author_id: ctx.profile.id,
     prompt,
     month: input.month,
+    photo_id: input.photoId ?? null,
   });
   if (error) {
-    // unique(senior_id, prompt) 위반 — 같은 질문을 이미 낸 경우.
-    return { error: error.code === "23505" ? "이미 낸 질문이에요" : "질문을 추가하지 못했어요" };
+    // unique(senior_id, prompt, photo_id) 위반 (0024). 사진이 다르면 같은 문구도
+    // 통과하므로, 사진 질문에서 걸렸다면 같은 사진에 같은 문구를 낸 것이다.
+    if (error.code === "23505") {
+      return {
+        error: input.photoId ? "그 사진에 같은 질문을 이미 냈어요" : "이미 낸 질문이에요",
+      };
+    }
+    return { error: "질문을 추가하지 못했어요" };
   }
 
   revalidatePath(`/connect/${input.seniorId}/recall`);

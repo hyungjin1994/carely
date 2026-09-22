@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { requireSenior } from "@/lib/auth/dal";
 import { getTodayRecall } from "@/lib/recall/queries";
 import { formatKstHeader } from "@/lib/time";
@@ -38,6 +39,32 @@ export default async function RecallPage() {
         <>
           {/* 질문 */}
           <Card>
+            {/* 사진이 있으면 질문 위에 크게. 글보다 사진이 기억을 먼저 연다. */}
+            {recall.photoUrl && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  // 세로로 긴 사진이 화면을 다 먹지 않게 잘라 담는다. 원본 비율을
+                  // 지키면 질문이 스크롤 밖으로 밀려 답할 칸이 안 보인다.
+                  aspectRatio: "4 / 3",
+                  background: "var(--c-screen)",
+                  borderRadius: "24px 24px 0 0",
+                  overflow: "hidden",
+                }}
+              >
+                <Image
+                  src={recall.photoUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 600px) 100vw, 600px"
+                  // 서명 URL 은 1시간 뒤 만료된다. 최적화를 거치면 Next 가 만료된
+                  // URL 을 캐시해 사진이 안 뜨는 상태가 남는다.
+                  unoptimized
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+            )}
             <div style={{ padding: "28px 24px" }}>
               <div
                 style={{

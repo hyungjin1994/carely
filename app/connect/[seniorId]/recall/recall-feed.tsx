@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/common/icon";
 import { showToast } from "@/components/common/toast";
 import { formatKstHeader } from "@/lib/time";
 import { addRecallQuestion, replyRecall } from "@/app/connect/[seniorId]/recall/actions";
+import type { AlbumPhoto } from "@/lib/recall/queries";
 
 export type FeedRow = {
   answerId: string;
@@ -14,6 +16,8 @@ export type FeedRow = {
   text: string | null;
   answeredAt: string;
   replyText: string | null;
+  /** 사진 질문이면 서명 URL. */
+  photoUrl: string | null;
 };
 
 export function RecallFeed({
@@ -21,17 +25,19 @@ export function RecallFeed({
   seniorName,
   rows,
   questionCount,
+  photos,
 }: {
   seniorId: string;
   seniorName: string;
   rows: FeedRow[];
   questionCount: number;
+  photos: AlbumPhoto[];
 }) {
   const unreplied = rows.filter((r) => r.text && !r.replyText).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <AddQuestion seniorId={seniorId} questionCount={questionCount} />
+      <AddQuestion seniorId={seniorId} questionCount={questionCount} photos={photos} />
 
       {unreplied > 0 && (
         <div
@@ -119,6 +125,30 @@ function FeedItem({ seniorId, row }: { seniorId: string; row: FeedRow }) {
         >
           {row.prompt}
         </div>
+
+        {/* 사진 질문이었다면 어떤 사진을 보고 답하신 건지 같이 보여준다 */}
+        {row.photoUrl && (
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              aspectRatio: "4 / 3",
+              borderRadius: 14,
+              overflow: "hidden",
+              background: "var(--c-screen)",
+              marginBottom: 12,
+            }}
+          >
+            <Image
+              src={row.photoUrl}
+              alt=""
+              fill
+              sizes="(max-width: 600px) 100vw, 600px"
+              unoptimized
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+        )}
 
         {row.text ? (
           <div
@@ -230,11 +260,35 @@ function FeedItem({ seniorId, row }: { seniorId: string; row: FeedRow }) {
   );
 }
 
-function AddQuestion({ seniorId, questionCount }: { seniorId: string; questionCount: number }) {
+/**
+ * 사진을 고르면 권하는 문구.
+ *
+ * 사진 앞에서는 "무엇을" 묻는 질문이 제일 잘 열린다. 사진이 이미 단서를 다
+ * 주고 있어서 실패할 수가 없고, 답이 한 단어로 끝나지 않는다.
+ * 연도·나이처럼 틀릴 수 있는 것은 넣지 않았다.
+ */
+const PHOTO_PROMPTS = [
+  "이 사진, 어디서 찍은 거예요?",
+  "이날 무슨 일이 있었어요?",
+  "이 사진에 누가 있어요?",
+  "이 사진 보면 뭐가 제일 먼저 떠올라요?",
+  "이날 기분이 어떠셨어요?",
+];
+
+function AddQuestion({
+  seniorId,
+  questionCount,
+  photos,
+}: {
+  seniorId: string;
+  questionCount: number;
+  photos: AlbumPhoto[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [month, setMonth] = useState("");
+  const [photoId, setPhotoId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const add = () => {
@@ -245,11 +299,13 @@ function AddQuestion({ seniorId, questionCount }: { seniorId: string; questionCo
         seniorId,
         prompt: text,
         month: month ? Number(month) : null,
+        photoId,
       });
       if (res.error) showToast(res.error);
       else {
         setPrompt("");
         setMonth("");
+        setPhotoId(null);
         setOpen(false);
         showToast("질문을 추가했어요");
         router.refresh();
@@ -276,7 +332,7 @@ function AddQuestion({ seniorId, questionCount }: { seniorId: string; questionCo
         }}
       >
         <Icon name="pencil" size={20} color="#0066FF" />
-        질문 추가 (지금 {questionCount}개)
+        {photos.length > 0 ? "질문 · 사진 추가" : "질문 추가"} (지금 {questionCount}개)
       </button>
     );
   }
@@ -305,6 +361,100 @@ function AddQuestion({ seniorId, questionCount }: { seniorId: string; questionCo
             resize: "none",
           }}
         />
+        {/* ── 사진 붙이기 ── */}
+        {photos.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "calc(13px*var(--fs))",
+                fontWeight: 800,
+                color: "var(--c-sub)",
+                marginBottom: 8,
+              }}
+            >
+              <Icon name="heart-fill" size={16} color="#E846CD" />
+              사진과 함께 묻기 {photoId && <span style={{ color: "#E846CD" }}>· 1장 선택</span>}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                overflowX: "auto",
+                paddingBottom: 4,
+                // 스크롤 영역이 카드 안쪽 여백을 넘어 끝까지 흐르게
+                marginInline: -16,
+                paddingInline: 16,
+              }}
+            >
+              {photos.map((p) => {
+                const picked = p.id === photoId;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      const next = picked ? null : p.id;
+                      setPhotoId(next);
+                      // 사진을 처음 고를 때 문구가 비어 있으면 첫 권장 문구를 넣어
+                      // 준다. 사진만 고르고 뭘 물을지 막히는 게 가장 흔하다.
+                      if (next && !prompt.trim()) setPrompt(PHOTO_PROMPTS[0]);
+                    }}
+                    aria-label={p.caption ?? "사진"}
+                    aria-pressed={picked}
+                    style={{
+                      position: "relative",
+                      flexShrink: 0,
+                      width: 84,
+                      height: 84,
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      border: picked ? "3px solid #E846CD" : "1px solid var(--c-line)",
+                      background: "var(--c-screen)",
+                      padding: 0,
+                    }}
+                  >
+                    {p.url && (
+                      <Image
+                        src={p.url}
+                        alt=""
+                        fill
+                        sizes="84px"
+                        unoptimized
+                        style={{ objectFit: "cover" }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 사진을 골랐을 때만 권장 문구를 보여준다. 글 질문에는 도움이 안 된다. */}
+        {photoId && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+            {PHOTO_PROMPTS.map((s) => (
+              <button
+                key={s}
+                onClick={() => setPrompt(s)}
+                style={{
+                  border: prompt === s ? "1px solid #E846CD" : "1px solid var(--c-line)",
+                  background: prompt === s ? "#FFF0FB" : "var(--c-card)",
+                  color: prompt === s ? "#B4189A" : "var(--c-sub)",
+                  borderRadius: 999,
+                  padding: "7px 12px",
+                  fontSize: "calc(13px*var(--fs))",
+                  fontWeight: 700,
+                }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div
           style={{
             fontSize: "calc(13px*var(--fs))",

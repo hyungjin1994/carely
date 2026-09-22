@@ -180,7 +180,7 @@ begin
     (v_senior, v_author, '남편이 제일 그리울 때가 언제예요?', false),
     (v_senior, v_author, '엄마 아빠가 제일 보고 싶을 때가 언제예요?', false),
     (v_senior, v_author, '남편이 {자녀}을/를 보면 뭐라고 하실 것 같아요?', false)
-  on conflict (senior_id, prompt) do nothing;
+  on conflict (senior_id, prompt, photo_id) do nothing;
 end $$;
 
 -- ── 3. 이미 active 로 들어간 질문 하나를 닫는다 ──

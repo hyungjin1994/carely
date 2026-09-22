@@ -3,7 +3,23 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { formatKstIsoDate } from "@/lib/time";
 import { fillChildLabel } from "@/lib/korean";
+import { getSignedPhotoUrl, getSignedPhotoUrls } from "@/lib/storage";
 import type { FamilyAnswer, FamilyQuestion } from "@/lib/database.types";
+
+/**
+ * 질문에 달린 사진의 서명 URL. 볼 수 없는 사진이면 null 이 떨어진다 —
+ * RLS 와 Storage 정책이 각각 막으므로 여기서 따로 검사하지 않는다.
+ */
+async function photoUrlFor(photoId: string | null): Promise<string | null> {
+  if (!photoId) return null;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("photos")
+    .select("storage_path")
+    .eq("id", photoId)
+    .maybeSingle();
+  return getSignedPhotoUrl(data?.storage_path ?? null);
+}
 
 /** 오늘의 질문 한 개. 이미 답하셨으면 그 질문과 답을 함께 준다. */
 export type TodayRecall = {
@@ -12,6 +28,8 @@ export type TodayRecall = {
   todayAnswer: FamilyAnswer | null;
   /** 이 질문에 예전에 답한 기록 (오늘 것 제외, 최신순). 회상은 반복이 값이므로 보여준다. */
   past: FamilyAnswer[];
+  /** 사진 질문이면 서명 URL. 비공개 버킷이라 매번 새로 발급한다(1시간). */
+  photoUrl: string | null;
 };
 
 /**
@@ -95,13 +113,18 @@ export async function getTodayRecall(seniorId: string): Promise<TodayRecall | nu
   const { start, end } = kstDayRange();
   const todays = all.find((a) => a.answered_at >= start && a.answered_at <= end);
 
-  const pick = (q: FamilyQuestion): TodayRecall => {
+  const pick = async (q: FamilyQuestion): Promise<TodayRecall> => {
     const mine = all.filter((a) => a.question_id === q.id);
     const todayAnswer = mine.find((a) => a.answered_at >= start && a.answered_at <= end) ?? null;
     // {자녀} 자리표시자를 호칭으로 바꿔 내려보낸다. DB 에는 자리표시자가 남는다 —
     // 호칭을 바꾸면 기존 질문도 같이 바뀌어야 하기 때문이다.
     const question = { ...q, prompt: fillChildLabel(q.prompt, label) };
-    return { question, todayAnswer, past: mine.filter((a) => a.id !== todayAnswer?.id) };
+    return {
+      question,
+      todayAnswer,
+      past: mine.filter((a) => a.id !== todayAnswer?.id),
+      photoUrl: await photoUrlFor(q.photo_id),
+    };
   };
 
   // 1. 오늘 이미 답했다면 그 질문.
@@ -140,6 +163,10 @@ export async function getTodayRecall(seniorId: string): Promise<TodayRecall | nu
     if (ra.seasonal !== rb.seasonal) return ra.seasonal - rb.seasonal;
     if (ra.answered !== rb.answered) return ra.answered - rb.answered;
     if (ra.last !== rb.last) return ra.last < rb.last ? -1 : 1;
+    // 아직 안 답한 것끼리는 **나중에 만든 것이 먼저** 나온다.
+    // 자녀가 방금 낸 질문(특히 사진 질문)이 seed 100여 개 뒤로 밀려 몇 달 뒤에
+    // 나오면 낸 사람 입장에서는 안 들어간 것과 구분이 안 된다.
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
     return a.id < b.id ? -1 : 1; // 완전 결정적으로
   });
 
@@ -149,6 +176,8 @@ export async function getTodayRecall(seniorId: string): Promise<TodayRecall | nu
 export type RecallFeedItem = {
   answer: FamilyAnswer;
   prompt: string;
+  /** 사진 질문이면 서명 URL. */
+  photoUrl: string | null;
 };
 
 /** 자녀용 — 어머니 답변을 최신순으로. 답장 안 한 것이 위로 오지 않고 시간순 그대로다. */
@@ -167,14 +196,72 @@ export async function getRecallFeed(seniorId: string, limit = 50): Promise<Recal
 
   const { data: questions } = await supabase
     .from("family_questions")
-    .select("id, prompt")
+    .select("id, prompt, photo_id")
     .in("id", Array.from(new Set(answers.map((a) => a.question_id))));
 
   const label = await childLabelFor(seniorId);
-  const promptById = new Map((questions ?? []).map((q) => [q.id, q.prompt]));
-  return answers.map((answer) => ({
-    answer,
-    prompt: fillChildLabel(promptById.get(answer.question_id) ?? "(삭제된 질문)", label),
+  const qs = questions ?? [];
+
+  // 사진은 서명 URL 을 한 번에 받는다 — 답변마다 발급하면 같은 사진을 여러 번
+  // 요청하게 되고 피드 50건이면 왕복이 그만큼 늘어난다.
+  const photoIds = Array.from(
+    new Set(qs.map((q) => q.photo_id).filter((id): id is string => Boolean(id))),
+  );
+  let urlByPhotoId: Record<string, string | null> = {};
+  if (photoIds.length > 0) {
+    const { data: photos } = await supabase
+      .from("photos")
+      .select("id, storage_path")
+      .in("id", photoIds);
+    const rows = photos ?? [];
+    const urls = await getSignedPhotoUrls(rows.map((p) => p.storage_path));
+    urlByPhotoId = Object.fromEntries(rows.map((p) => [p.id, urls[p.storage_path] ?? null]));
+  }
+
+  const byId = new Map(qs.map((q) => [q.id, q]));
+  return answers.map((answer) => {
+    const q = byId.get(answer.question_id);
+    return {
+      answer,
+      prompt: fillChildLabel(q?.prompt ?? "(삭제된 질문)", label),
+      photoUrl: q?.photo_id ? (urlByPhotoId[q.photo_id] ?? null) : null,
+    };
+  });
+}
+
+export type AlbumPhoto = {
+  id: string;
+  url: string | null;
+  caption: string | null;
+  createdAt: string;
+};
+
+/**
+ * 사진 질문을 낼 때 고를 사진 목록 (어머니 것 + 내가 올린 것, 최신순).
+ *
+ * 앨범 타임라인(getTimeline)을 쓰지 않는 이유: 그쪽은 좋아요·댓글·작성자 이름까지
+ * 같이 끌어와서 고르기용으로는 무겁다. 여기서 필요한 건 썸네일과 id 뿐이다.
+ */
+export async function listAlbumPhotos(
+  ownerIds: string[],
+  limit = 24,
+): Promise<AlbumPhoto[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("photos")
+    .select("id, storage_path, caption, created_at")
+    .in("owner_id", ownerIds)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+  const urls = await getSignedPhotoUrls(rows.map((p) => p.storage_path));
+  return rows.map((p) => ({
+    id: p.id,
+    url: urls[p.storage_path] ?? null,
+    caption: p.caption,
+    createdAt: p.created_at,
   }));
 }
 

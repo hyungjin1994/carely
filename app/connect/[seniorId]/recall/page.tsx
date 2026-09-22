@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ensureProfile } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
-import { childLabelParts, getRecallFeed } from "@/lib/recall/queries";
+import { childLabelParts, getRecallFeed, listAlbumPhotos } from "@/lib/recall/queries";
 import { SubHeader } from "@/components/common/sub-header";
 import { ChildLabel } from "./child-label";
 import { RecallFeed, type FeedRow } from "./recall-feed";
@@ -27,7 +27,7 @@ export default async function SeniorRecallPage({
     .maybeSingle();
   if (!link) redirect("/connect");
 
-  const [{ data: senior }, feed, { count }, childLabel] = await Promise.all([
+  const [{ data: senior }, feed, { count }, childLabel, photos] = await Promise.all([
     supabase.from("profiles").select("name").eq("id", seniorId).maybeSingle(),
     getRecallFeed(seniorId),
     supabase
@@ -36,6 +36,8 @@ export default async function SeniorRecallPage({
       .eq("senior_id", seniorId)
       .eq("active", true),
     childLabelParts(seniorId),
+    // 사진 질문을 낼 때 고를 목록 — 어머니 앨범 + 내가 올린 것.
+    listAlbumPhotos([seniorId, profile.id]),
   ]);
 
   const seniorName = senior?.name ?? "어르신";
@@ -45,6 +47,7 @@ export default async function SeniorRecallPage({
     text: f.answer.text,
     answeredAt: f.answer.answered_at,
     replyText: f.answer.reply_text,
+    photoUrl: f.photoUrl,
   }));
 
   return (
@@ -63,6 +66,7 @@ export default async function SeniorRecallPage({
         seniorName={seniorName}
         rows={rows}
         questionCount={count ?? 0}
+        photos={photos}
       />
     </div>
   );

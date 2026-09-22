@@ -208,6 +208,8 @@ export type FamilyQuestion = {
   month: number | null;
   active: boolean;
   created_at: string;
+  /** 함께 보여줄 사진 (0024). null 이면 글만 있는 질문. */
+  photo_id: string | null;
 };
 
 /** 어머니 답변 + 자녀 답장. text 가 null 이면 "질문은 봤지만 답은 안 하신" 것. */

@@ -7,7 +7,9 @@
 --      연결이 하나면 senior/author 를 자동으로 찾는다. 여러 개면 아래 v_senior/v_author 를
 --      직접 채운다. (id 확인: select senior_id, manager_id from public.family_links;)
 --
--- 재실행해도 안전하다 — unique(senior_id, prompt) 로 중복이 무시된다.
+-- 재실행해도 안전하다 — unique(senior_id, prompt, photo_id) 로 중복이 무시된다.
+-- (0024 부터 사진이 키에 들어간다. 사진이 다르면 같은 문구도 다른 질문이다.
+--  0024 를 돌리기 전이라면 on conflict 절에서 photo_id 를 빼야 한다.)
 -- 그래서 질문을 추가한 뒤 이 파일을 다시 돌리면 새 것만 들어간다.
 --
 -- ── 질문을 고치거나 지울 때 ──
@@ -204,7 +206,7 @@ begin
     (v_senior, v_author, '남편이랑 같이 간 여행 중에 제일 좋았던 데가 어디예요?', null),
     (v_senior, v_author, '남편이랑 같이 본 영화나 드라마가 있어요?', null),
     (v_senior, v_author, '남편이 제일 아끼던 물건이 뭐였어요?', null)
-  on conflict (senior_id, prompt) do nothing;
+  on conflict (senior_id, prompt, photo_id) do nothing;
 
   -- ── 곁에 있을 때만 하는 질문 (active = false) ──
   --
@@ -220,7 +222,7 @@ begin
     (v_senior, v_author, '남편이 제일 그리울 때가 언제예요?', false),
     (v_senior, v_author, '엄마 아빠가 제일 보고 싶을 때가 언제예요?', false),
     (v_senior, v_author, '남편이 {자녀}을/를 보면 뭐라고 하실 것 같아요?', false)
-  on conflict (senior_id, prompt) do nothing;
+  on conflict (senior_id, prompt, photo_id) do nothing;
 
   select count(*) into v_count
     from public.family_questions
