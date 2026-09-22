@@ -2,14 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   QUIZ,
   WORDQ,
-  CAPITALS,
-  IDIOMS,
-  SEASONAL,
   buildRounds,
   candidatesFor,
   selectCandidates,
   type SeenMap,
 } from "@/lib/games/quiz-bank";
+import {
+  ANIMALS,
+  BODY_PARTS,
+  CAPITALS,
+  IDIOMS,
+  OLD_UNITS,
+  SEASONAL,
+  SOLAR_TERMS,
+} from "@/lib/games/quiz-facts";
 import { DIFF } from "@/lib/games/config";
 
 const HARD_QUIZ = DIFF.hard.n.quiz;
@@ -37,11 +43,51 @@ describe("문제 은행 데이터", () => {
     }
   });
 
-  it("지식 테이블: 중복 없음", () => {
-    expect(new Set(CAPITALS.map((c) => c.country)).size).toBe(CAPITALS.length);
-    expect(new Set(CAPITALS.map((c) => c.capital)).size).toBe(CAPITALS.length);
-    expect(new Set(IDIOMS.map((i) => i.idiom)).size).toBe(IDIOMS.length);
-    expect(new Set(SEASONAL.map((s) => s.occasion)).size).toBe(SEASONAL.length);
+  it("지식 테이블: 양쪽 값이 모두 유일하다", () => {
+    // 한쪽에 같은 값이 둘 있으면 오답으로 서로 뽑혀 정답이 두 개가 된다.
+    const tables: [string, string[], string[]][] = [
+      ["수도", CAPITALS.map((c) => c.country), CAPITALS.map((c) => c.capital)],
+      ["성어", IDIOMS.map((i) => i.idiom), IDIOMS.map((i) => i.meaning)],
+      ["명절", SEASONAL.map((s) => s.occasion), SEASONAL.map((s) => s.food)],
+      ["절기", SOLAR_TERMS.map((t) => t.term), SOLAR_TERMS.map((t) => t.meaning)],
+      ["동물", ANIMALS.map((a) => a.animal), ANIMALS.map((a) => a.baby)],
+      ["몸", BODY_PARTS.map((b) => b.part), BODY_PARTS.map((b) => b.work)],
+      ["옛단위", OLD_UNITS.map((u) => u.unit), OLD_UNITS.map((u) => u.size)],
+    ];
+    for (const [name, left, right] of tables) {
+      expect(new Set(left).size, `${name} 왼쪽`).toBe(left.length);
+      expect(new Set(right).size, `${name} 오른쪽`).toBe(right.length);
+    }
+  });
+
+  it("지식 테이블: 빈 값이 없다", () => {
+    for (const t of [
+      ...CAPITALS.map((c) => [c.country, c.capital]),
+      ...IDIOMS.map((i) => [i.idiom, i.meaning]),
+      ...SEASONAL.map((s) => [s.occasion, s.food]),
+      ...SOLAR_TERMS.map((x) => [x.term, x.meaning]),
+      ...ANIMALS.map((a) => [a.animal, a.baby]),
+      ...BODY_PARTS.map((b) => [b.part, b.work]),
+      ...OLD_UNITS.map((u) => [u.unit, u.size]),
+    ]) {
+      expect(t[0].trim().length).toBeGreaterThan(0);
+      expect(t[1].trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("qid 가 전부 유일하다", () => {
+    // 겹치면 한쪽 문항의 출제 이력이 다른 문항에 섞인다.
+    for (const g of ["quiz", "word"] as const) {
+      const qids = candidatesFor(g).map((c) => c.qid);
+      expect(new Set(qids).size).toBe(qids.length);
+    }
+  });
+
+  it("문제 문구가 전부 유일하다", () => {
+    // 같은 것을 묻는 문제가 두 벌 있으면 어머니가 중복으로 느낀다.
+    const prompts = candidatesFor("quiz").map((c) => c.make().q);
+    const dup = prompts.filter((p, i) => prompts.indexOf(p) !== i);
+    expect(dup, `중복: ${[...new Set(dup)].slice(0, 5).join(" | ")}`).toHaveLength(0);
   });
 });
 

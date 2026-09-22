@@ -2,6 +2,9 @@ import "server-only";
 
 import { shuffle } from "@/lib/games/engine";
 import type { ChoiceGameId, ChoiceRound } from "@/lib/games/config";
+import {
+  ANIMALS, BODY_PARTS, CAPITALS, IDIOMS, OLD_UNITS, SEASONAL, SOLAR_TERMS,
+} from "@/lib/games/quiz-facts";
 
 // 퀴즈·단어 문제 은행 + 출제 로직. **서버 전용.**
 //
@@ -12,7 +15,7 @@ import type { ChoiceGameId, ChoiceRound } from "@/lib/games/config";
 // ── 퀴즈 문제 관리 방법 ──
 // 퀴즈는 두 갈래로 관리한다. 둘 다 코드 상수(배열)이며 DB 아님.
 //
-// (1) 지식 테이블 — CAPITALS / SEASONAL / IDIOMS
+// (1) 지식 테이블 — lib/games/quiz-facts.ts (나라·성어·명절·절기·동물·몸·옛단위)
 //     "지식" 1건을 적으면 양방향 문제 2개가 파생된다.
 //     (예: 프랑스/파리 → "프랑스의 수도는?" + "파리 — 어느 나라의 수도일까요?")
 //     오답 선택지는 같은 카테고리 풀에서 매 판 새로 뽑으므로 보기 조합이 매번 달라진다.
@@ -28,78 +31,6 @@ import type { ChoiceGameId, ChoiceRound } from "@/lib/games/config";
 //            "프랑스의 수도는?" 을 풀었다고 "파리 — 어느 나라?" 까지 푼 건 아니므로.
 //            qid 를 바꾸면 그 문항의 이력이 리셋되니 한번 정하면 바꾸지 말 것.
 
-/** 나라↔수도. region 은 오답을 같은 권역에서 뽑기 위한 것(4건 이상이면 권역, 미만이면 전체 풀). */
-export type CapitalFact = { country: string; capital: string; region: "유럽" | "아시아" | "아메리카" | "기타" };
-
-export const CAPITALS: CapitalFact[] = [
-  { country: "프랑스", capital: "파리", region: "유럽" },
-  { country: "영국", capital: "런던", region: "유럽" },
-  { country: "이탈리아", capital: "로마", region: "유럽" },
-  { country: "독일", capital: "베를린", region: "유럽" },
-  { country: "러시아", capital: "모스크바", region: "유럽" },
-  { country: "스페인", capital: "마드리드", region: "유럽" },
-  { country: "그리스", capital: "아테네", region: "유럽" },
-  { country: "네덜란드", capital: "암스테르담", region: "유럽" },
-  { country: "스위스", capital: "베른", region: "유럽" },
-  { country: "포르투갈", capital: "리스본", region: "유럽" },
-  { country: "스웨덴", capital: "스톡홀름", region: "유럽" },
-  { country: "대한민국", capital: "서울", region: "아시아" },
-  { country: "일본", capital: "도쿄", region: "아시아" },
-  { country: "중국", capital: "베이징", region: "아시아" },
-  { country: "태국", capital: "방콕", region: "아시아" },
-  { country: "베트남", capital: "하노이", region: "아시아" },
-  { country: "필리핀", capital: "마닐라", region: "아시아" },
-  { country: "인도", capital: "뉴델리", region: "아시아" },
-  { country: "인도네시아", capital: "자카르타", region: "아시아" },
-  { country: "몽골", capital: "울란바토르", region: "아시아" },
-  { country: "미국", capital: "워싱턴 D.C.", region: "아메리카" },
-  { country: "캐나다", capital: "오타와", region: "아메리카" },
-  { country: "브라질", capital: "브라질리아", region: "아메리카" },
-  { country: "멕시코", capital: "멕시코시티", region: "아메리카" },
-  { country: "아르헨티나", capital: "부에노스아이레스", region: "아메리카" },
-  { country: "이집트", capital: "카이로", region: "기타" },
-  { country: "호주", capital: "캔버라", region: "기타" },
-  { country: "뉴질랜드", capital: "웰링턴", region: "기타" },
-  { country: "사우디아라비아", capital: "리야드", region: "기타" },
-];
-
-/** 명절·절기↔음식. */
-export type SeasonalFact = { occasion: string; food: string };
-
-export const SEASONAL: SeasonalFact[] = [
-  { occasion: "추석", food: "송편" },
-  { occasion: "설날", food: "떡국" },
-  { occasion: "동짓날", food: "팥죽" },
-  { occasion: "정월 대보름", food: "오곡밥" },
-  { occasion: "복날", food: "삼계탕" },
-  { occasion: "생일", food: "미역국" },
-];
-
-/** 한자성어↔뜻. */
-export type IdiomFact = { idiom: string; meaning: string };
-
-export const IDIOMS: IdiomFact[] = [
-  { idiom: "유비무환", meaning: "미리 준비하면 걱정이 없다" },
-  { idiom: "일석이조", meaning: "한 번에 두 가지 이득" },
-  { idiom: "다다익선", meaning: "많을수록 좋다" },
-  { idiom: "작심삼일", meaning: "마음먹은 지 사흘을 못 감" },
-  { idiom: "금상첨화", meaning: "좋은 데 좋은 것이 더해짐" },
-  { idiom: "자업자득", meaning: "자기가 한 일의 결과를 자기가 받음" },
-  { idiom: "대기만성", meaning: "큰 그릇은 늦게 이루어진다" },
-  { idiom: "유유상종", meaning: "비슷한 것끼리 어울린다" },
-  { idiom: "고진감래", meaning: "고생 끝에 즐거움이 온다" },
-  { idiom: "과유불급", meaning: "지나침은 모자람만 못하다" },
-  { idiom: "청출어람", meaning: "제자가 스승보다 낫다" },
-  { idiom: "새옹지마", meaning: "인생의 좋고 나쁨은 알 수 없다" },
-  { idiom: "십중팔구", meaning: "열에 여덟아홉, 거의 대부분" },
-  { idiom: "동고동락", meaning: "괴로움과 즐거움을 함께한다" },
-  { idiom: "견물생심", meaning: "물건을 보면 갖고 싶어진다" },
-  { idiom: "어부지리", meaning: "둘이 다투는 사이 딴 사람이 이득" },
-  { idiom: "팔방미인", meaning: "여러 방면에 두루 능한 사람" },
-  { idiom: "일사천리", meaning: "일이 거침없이 빠르게 진행됨" },
-];
-
-/** 단발 문항. id 는 출제 이력(quiz_seen.qid)의 키이므로 한번 정하면 바꾸지 않는다. */
 export type QuizItem = { id: string; q: string; o: string[]; a: number };
 
 export const QUIZ: QuizItem[] = [
@@ -174,6 +105,110 @@ export const QUIZ: QuizItem[] = [
   { id: "prov26", q: "아주 쉬운 일을 뜻하는 속담은?", o: ["누워서 떡 먹기", "하늘의 별 따기", "산 넘어 산", "그림의 떡"], a: 0 },
   { id: "prov27", q: "아주 어려운 일을 뜻하는 속담은?", o: ["식은 죽 먹기", "땅 짚고 헤엄치기", "하늘의 별 따기", "누워서 떡 먹기"], a: 2 },
   { id: "prov28", q: "'우이독경'과 뜻이 통하는 속담은?", o: ["소 귀에 경 읽기", "가는 날이 장날", "등잔 밑이 어둡다", "누워서 떡 먹기"], a: 0 },
+  { id: "prov29", q: '"공든 탑이 ◯◯◯◯"', o: ["무너지랴", "높아지랴", "빛나랴", "흔들리랴"], a: 0 },
+  { id: "prov30", q: '"믿는 도끼에 ◯ 찍힌다"', o: ["발등", "손등", "머리", "어깨"], a: 0 },
+  { id: "prov31", q: '"아는 길도 ◯◯ 가라"', o: ["물어", "돌아", "뛰어", "쉬어"], a: 0 },
+  { id: "prov32", q: '"가는 날이 ◯◯"', o: ["장날", "제날", "생일", "잔칫날"], a: 0 },
+  { id: "prov33", q: '"쥐구멍에도 ◯ 들 날 있다"', o: ["볕", "물", "바람", "비"], a: 0 },
+  { id: "prov34", q: '"핑계 없는 ◯◯ 없다"', o: ["무덤", "잔치", "싸움", "장사"], a: 0 },
+  { id: "prov35", q: '"열 번 찍어 안 넘어가는 ◯◯ 없다"', o: ["나무", "바위", "담장", "기둥"], a: 0 },
+  { id: "prov36", q: '"급할수록 ◯◯◯ 가라"', o: ["돌아서", "뛰어서", "빨리", "쉬면서"], a: 0 },
+  { id: "prov37", q: '"세 사람이 가면 ◯이 생긴다"', o: ["길", "다리", "집", "밭"], a: 0 },
+  { id: "prov38", q: '"작은 고추가 더 ◯◯"', o: ["맵다", "크다", "붉다", "달다"], a: 0 },
+  { id: "prov39", q: '"방귀 뀐 놈이 ◯◯◯"', o: ["성낸다", "웃는다", "숨는다", "도망친다"], a: 0 },
+  { id: "prov40", q: '"뛰는 놈 위에 ◯◯ 놈 있다"', o: ["나는", "걷는", "앉은", "누운"], a: 0 },
+  { id: "prov41", q: '"낫 놓고 ◯◯ 자도 모른다"', o: ["기역", "니은", "디귿", "리을"], a: 0 },
+  { id: "prov42", q: '"제 논에 ◯ 대기"', o: ["물", "흙", "거름", "씨"], a: 0 },
+  { id: "prov43", q: '"떡 줄 사람은 생각도 없는데 ◯◯◯부터 마신다"', o: ["김칫국", "숭늉", "막걸리", "냉수"], a: 0 },
+  { id: "prov44", q: '"소문난 잔치에 ◯◯ 것 없다"', o: ["먹을", "볼", "들을", "살"], a: 0 },
+
+  // ── 옛날 물건 ──
+  { id: "old01", q: "밤에 방에 두고 쓰던 옛날 변기는?", o: ["요강", "물동이", "소반", "함지"], a: 0 },
+  { id: "old02", q: "곡식을 갈던 둥근 돌 두 짝은?", o: ["맷돌", "절구", "체", "키"], a: 0 },
+  { id: "old03", q: "곡식을 빻을 때 쓰던 통과 공이는?", o: ["절구", "맷돌", "함지", "시루"], a: 0 },
+  { id: "old04", q: "떡을 찔 때 쓰는 구멍 뚫린 그릇은?", o: ["시루", "솥", "냄비", "쟁반"], a: 0 },
+  { id: "old05", q: "곡식의 껍질을 날려 고르던 도구는?", o: ["키", "체", "빗자루", "삽"], a: 0 },
+  { id: "old06", q: "짚으로 엮어 신던 신은?", o: ["짚신", "나막신", "고무신", "버선"], a: 0 },
+  { id: "old07", q: "비 올 때 신던 나무 신은?", o: ["나막신", "짚신", "가죽신", "버선"], a: 0 },
+  { id: "old08", q: "겨울에 방을 데우던 검은 연료는?", o: ["연탄", "장작", "숯", "기름"], a: 0 },
+  { id: "old09", q: "물을 길어 나를 때 머리에 얹던 것은?", o: ["물동이", "함지", "시루", "소반"], a: 0 },
+  { id: "old10", q: "아기를 등에 업을 때 쓰던 천은?", o: ["포대기", "보자기", "행주", "수건"], a: 0 },
+  { id: "old11", q: "밥상으로 쓰던 작고 낮은 상은?", o: ["소반", "평상", "마루", "뒤주"], a: 0 },
+  { id: "old12", q: "쌀을 담아 두던 나무 궤짝은?", o: ["뒤주", "장롱", "반닫이", "시루"], a: 0 },
+
+  // ── 옛 직업·풍속 ──
+  { id: "job01", q: "엿을 팔며 가위를 치던 사람은?", o: ["엿장수", "방물장수", "각설이", "보부상"], a: 0 },
+  { id: "job02", q: "이 마을 저 마을 다니며 물건을 팔던 사람은?", o: ["보부상", "엿장수", "대장장이", "옹기장이"], a: 0 },
+  { id: "job03", q: "쇠를 두들겨 연장을 만들던 사람은?", o: ["대장장이", "옹기장이", "미장이", "목수"], a: 0 },
+  { id: "job04", q: "항아리를 굽던 사람은?", o: ["옹기장이", "대장장이", "갓장이", "목수"], a: 0 },
+  { id: "job05", q: "사람을 태우고 끌던 두 바퀴 수레는?", o: ["인력거", "지게", "달구지", "가마"], a: 0 },
+  { id: "job06", q: "소가 끌던 짐수레는?", o: ["달구지", "인력거", "지게", "쟁기"], a: 0 },
+  { id: "job07", q: "등에 짐을 지어 나르던 나무 도구는?", o: ["지게", "달구지", "쟁기", "써레"], a: 0 },
+  { id: "job08", q: "시집갈 때 타던 가리개 있는 탈것은?", o: ["가마", "인력거", "달구지", "썰매"], a: 0 },
+  { id: "job09", q: "설 명절에 어른께 하는 절을 무엇이라 할까요?", o: ["세배", "제사", "차례", "성묘"], a: 0 },
+  { id: "job10", q: "추석에 조상 묘를 찾아 돌보는 일은?", o: ["성묘", "세배", "차례", "굿"], a: 0 },
+  { id: "job11", q: "명절 아침 조상께 음식을 올리는 것은?", o: ["차례", "세배", "성묘", "굿"], a: 0 },
+
+  // ── 농사 ──
+  { id: "farm01", q: "논에 물을 대고 벼를 심는 일은?", o: ["모내기", "김매기", "타작", "추수"], a: 0 },
+  { id: "farm02", q: "논밭의 잡초를 뽑는 일은?", o: ["김매기", "모내기", "타작", "거름주기"], a: 0 },
+  { id: "farm03", q: "벼를 베어 곡식을 털어내는 일은?", o: ["타작", "모내기", "김매기", "파종"], a: 0 },
+  { id: "farm04", q: "가을에 곡식을 거두어들이는 일은?", o: ["추수", "모내기", "파종", "김매기"], a: 0 },
+  { id: "farm05", q: "소로 논밭을 갈 때 쓰던 연장은?", o: ["쟁기", "낫", "호미", "삽"], a: 0 },
+  { id: "farm06", q: "풀이나 벼를 벨 때 쓰는 굽은 칼은?", o: ["낫", "쟁기", "호미", "도끼"], a: 0 },
+  { id: "farm07", q: "밭의 흙을 긁고 김을 맬 때 쓰는 작은 연장은?", o: ["호미", "낫", "쟁기", "써레"], a: 0 },
+  { id: "farm08", q: "모내기는 주로 어느 계절에 할까요?", o: ["봄", "여름", "가을", "겨울"], a: 0 },
+  { id: "farm09", q: "추수는 주로 어느 계절에 할까요?", o: ["봄", "여름", "가을", "겨울"], a: 2 },
+
+  // ── 세는 말 (우리말 단위) ──
+  { id: "cnt01", q: "김 한 톳은 몇 장일까요?", o: ["열 장", "쉰 장", "백 장", "스무 장"], a: 2 },
+  { id: "cnt02", q: "북어나 오징어를 스무 마리씩 묶은 단위는?", o: ["쾌", "접", "두름", "손"], a: 0 },
+  { id: "cnt03", q: "과일이나 채소 백 개를 묶은 단위는?", o: ["접", "쾌", "두름", "톳"], a: 0 },
+  { id: "cnt04", q: "생선 두 마리를 한 단위로 셀 때 쓰는 말은?", o: ["손", "쾌", "접", "두름"], a: 0 },
+  { id: "cnt05", q: "조기나 청어를 열 마리씩 두 줄로 엮은 단위는?", o: ["두름", "손", "접", "톳"], a: 0 },
+  { id: "cnt06", q: "바늘 스물네 개를 묶은 단위는?", o: ["쌈", "톳", "접", "쾌"], a: 0 },
+  { id: "cnt07", q: "신발 두 짝을 세는 말은?", o: ["켤레", "벌", "쌈", "손"], a: 0 },
+  { id: "cnt08", q: "옷 한 벌은 무엇을 뜻할까요?", o: ["위아래 한 짝", "한 장", "두 장", "세 장"], a: 0 },
+
+  // ── 우리나라 지리·역사 (추가) ──
+  { id: "kr13", q: "우리나라에서 가장 긴 강은?", o: ["한강", "압록강", "낙동강", "금강"], a: 1 },
+  { id: "kr14", q: "남한에서 가장 긴 강은?", o: ["한강", "낙동강", "금강", "영산강"], a: 1 },
+  { id: "kr15", q: "우리나라에서 가장 높은 산은?", o: ["백두산", "한라산", "지리산", "설악산"], a: 0 },
+  { id: "kr16", q: "남한에서 가장 높은 산은?", o: ["한라산", "지리산", "설악산", "태백산"], a: 0 },
+  { id: "kr17", q: "제주도에 있는 산은?", o: ["한라산", "지리산", "속리산", "오대산"], a: 0 },
+  { id: "kr18", q: "경주는 어느 나라의 수도였을까요?", o: ["신라", "백제", "고구려", "고려"], a: 0 },
+  { id: "kr19", q: "고려의 수도였던 곳은?", o: ["개성", "경주", "부여", "평양"], a: 0 },
+  { id: "kr20", q: "백제의 마지막 수도였던 곳은?", o: ["부여", "경주", "개성", "평양"], a: 0 },
+  { id: "kr21", q: "세종대왕이 한글을 알리려 펴낸 책은?", o: ["훈민정음", "동의보감", "삼국사기", "목민심서"], a: 0 },
+  { id: "kr22", q: "허준이 지은 의학책은?", o: ["동의보감", "훈민정음", "택리지", "난중일기"], a: 0 },
+  { id: "kr23", q: "이순신 장군이 쓴 일기는?", o: ["난중일기", "동의보감", "열하일기", "목민심서"], a: 0 },
+  { id: "kr24", q: "6·25 전쟁이 일어난 해는?", o: ["1945년", "1950년", "1953년", "1960년"], a: 1 },
+  { id: "kr25", q: "우리나라가 일본에서 해방된 해는?", o: ["1945년", "1950년", "1919년", "1960년"], a: 0 },
+  { id: "kr26", q: "서울올림픽이 열린 해는?", o: ["1980년", "1984년", "1988년", "1992년"], a: 2 },
+  { id: "kr27", q: "우리나라에서 월드컵이 열린 해는?", o: ["1998년", "2002년", "2006년", "2010년"], a: 1 },
+  { id: "kr28", q: "한복에서 위에 입는 옷은?", o: ["저고리", "치마", "바지", "두루마기"], a: 0 },
+  { id: "kr29", q: "남자 한복 위에 걸치는 긴 겉옷은?", o: ["두루마기", "저고리", "조끼", "마고자"], a: 0 },
+  { id: "kr30", q: "삼일절은 어떤 날일까요?", o: ["독립운동을 기념하는 날", "해방된 날", "나라를 세운 날", "한글을 만든 날"], a: 0 },
+
+  // ── 자연·생활 (추가) ──
+  { id: "nat21", q: "가을에 나뭇잎이 붉게 물드는 것을 무엇이라 할까요?", o: ["단풍", "낙엽", "새싹", "서리"], a: 0 },
+  { id: "nat22", q: "여름에 갑자기 쏟아지는 비는?", o: ["소나기", "가랑비", "장맛비", "진눈깨비"], a: 0 },
+  { id: "nat23", q: "여름철 오래 내리는 비를 무엇이라 할까요?", o: ["장마", "소나기", "가랑비", "이슬비"], a: 0 },
+  { id: "nat24", q: "가늘게 내리는 비는?", o: ["가랑비", "소나기", "장마", "우박"], a: 0 },
+  { id: "nat25", q: "비와 눈이 섞여 내리는 것은?", o: ["진눈깨비", "우박", "이슬", "서리"], a: 0 },
+  { id: "nat26", q: "하늘에서 얼음 덩어리가 떨어지는 것은?", o: ["우박", "진눈깨비", "서리", "이슬"], a: 0 },
+  { id: "nat27", q: "새벽에 풀잎에 맺히는 물방울은?", o: ["이슬", "서리", "안개", "비"], a: 0 },
+  { id: "nat28", q: "추운 날 아침 풀잎에 하얗게 앉는 것은?", o: ["서리", "이슬", "안개", "눈"], a: 0 },
+  { id: "nat29", q: "제비가 우리나라를 떠나는 계절은?", o: ["봄", "여름", "가을", "겨울"], a: 2 },
+  { id: "nat30", q: "겨울에 우리나라로 오는 새는?", o: ["기러기", "제비", "뻐꾸기", "꾀꼬리"], a: 0 },
+  { id: "nat31", q: "여름에 우는 곤충은?", o: ["매미", "귀뚜라미", "베짱이", "여치"], a: 0 },
+  { id: "nat32", q: "가을 밤에 우는 곤충은?", o: ["귀뚜라미", "매미", "나비", "벌"], a: 0 },
+  { id: "nat33", q: "달이 하나도 안 보이는 날을 무엇이라 할까요?", o: ["그믐", "보름", "초승", "상현"], a: 0 },
+  { id: "nat34", q: "달이 가장 둥근 날은?", o: ["보름", "그믐", "초승", "하현"], a: 0 },
+  { id: "nat35", q: "바다에서 물이 빠지는 것을 무엇이라 할까요?", o: ["썰물", "밀물", "파도", "너울"], a: 0 },
+  { id: "nat36", q: "바다에서 물이 밀려 들어오는 것은?", o: ["밀물", "썰물", "해일", "물결"], a: 0 },
+  { id: "nat37", q: "우리 몸에서 뼈와 뼈가 만나는 곳은?", o: ["관절", "근육", "핏줄", "살"], a: 0 },
+  { id: "nat38", q: "봄에 흙에서 새로 돋아나는 것은?", o: ["새싹", "낙엽", "단풍", "열매"], a: 0 },
 ];
 
 /** 단어 짝. id 는 출제 이력(quiz_seen.qid)의 키이므로 한번 정하면 바꾸지 않는다. */
@@ -269,90 +304,132 @@ function pickDistractors(ans: string, near: readonly string[], all: readonly str
   return out;
 }
 
-function capitalCandidates(): Candidate[] {
-  const allCaps = CAPITALS.map((c) => c.capital);
-  const allCountries = CAPITALS.map((c) => c.country);
-  return CAPITALS.flatMap((f) => {
-    const region = CAPITALS.filter((x) => x.region === f.region);
-    const near = region.length >= NEAR_POOL_MIN ? region : CAPITALS;
-    const source = `cap:${f.country}`;
+/**
+ * 1:1 로 대응하는 지식 테이블에서 양방향 후보를 만든다.
+ *
+ * 테이블마다 같은 코드를 복붙하던 것을 하나로 합쳤다 — 테이블이 7개가 되면서
+ * 복붙이 유지보수 부담이 됐고, 오답 풀을 잘못 넘기는 실수가 나기 쉬웠다.
+ *
+ * near 를 주면 오답을 그 좁은 풀에서 먼저 뽑는다(수도의 권역처럼).
+ * 풀이 모자라면 전체 테이블로 보충한다.
+ */
+function pairCandidates<T>(opts: {
+  /** source 접두사. qid 가 여기서 나오므로 한번 정하면 바꾸지 말 것. */
+  prefix: string;
+  items: readonly T[];
+  /** source 키가 될 값 (보통 왼쪽 값) */
+  key: (t: T) => string;
+  left: (t: T) => string;
+  right: (t: T) => string;
+  /** 왼쪽을 보여주고 오른쪽을 묻는 문구 */
+  askRight: (t: T) => string;
+  /** 오른쪽을 보여주고 왼쪽을 묻는 문구 */
+  askLeft: (t: T) => string;
+  near?: (t: T) => readonly T[];
+}): Candidate[] {
+  const { prefix, items, key, left, right, askRight, askLeft, near } = opts;
+  const allLeft = items.map(left);
+  const allRight = items.map(right);
+
+  return items.flatMap((t) => {
+    const pool = near ? near(t) : items;
+    const source = `${prefix}:${key(t)}`;
     return [
       {
         qid: `${source}:fwd`,
         source,
         make: () => ({
-          q: `${f.country}의 수도는 어디일까요?`,
-          ans: f.capital,
-          d: pickDistractors(f.capital, near.map((x) => x.capital), allCaps),
+          q: askRight(t),
+          ans: right(t),
+          d: pickDistractors(right(t), pool.map(right), allRight),
         }),
       },
       {
         qid: `${source}:rev`,
         source,
         make: () => ({
-          q: `${f.capital} — 어느 나라의 수도일까요?`,
-          ans: f.country,
-          d: pickDistractors(f.country, near.map((x) => x.country), allCountries),
+          q: askLeft(t),
+          ans: left(t),
+          d: pickDistractors(left(t), pool.map(left), allLeft),
         }),
       },
     ];
   });
 }
 
-function seasonalCandidates(): Candidate[] {
-  const foods = SEASONAL.map((s) => s.food);
-  const occasions = SEASONAL.map((s) => s.occasion);
-  return SEASONAL.flatMap((f) => {
-    const source = `season:${f.occasion}`;
-    return [
-      {
-        qid: `${source}:fwd`,
-        source,
-        make: () => ({
-          q: `${f.occasion}에 먹는 대표 음식은?`,
-          ans: f.food,
-          d: pickDistractors(f.food, foods, foods),
-        }),
+/** 지식 테이블 7종. 한 줄 추가 = 문제 2개. */
+function factCandidates(): Candidate[] {
+  return [
+    ...pairCandidates({
+      prefix: "cap",
+      items: CAPITALS,
+      key: (c) => c.country,
+      left: (c) => c.country,
+      right: (c) => c.capital,
+      askRight: (c) => `${c.country}의 수도는 어디일까요?`,
+      askLeft: (c) => `${c.capital} — 어느 나라의 수도일까요?`,
+      // 같은 권역에서 오답을 뽑아야 난이도가 산다. 아무 대륙 수도를 섞으면
+      // 내용을 몰라도 소거법으로 맞힌다.
+      near: (c) => {
+        const region = CAPITALS.filter((x) => x.region === c.region);
+        return region.length >= NEAR_POOL_MIN ? region : CAPITALS;
       },
-      {
-        qid: `${source}:rev`,
-        source,
-        make: () => ({
-          q: `${f.food} — 언제 먹는 음식일까요?`,
-          ans: f.occasion,
-          d: pickDistractors(f.occasion, occasions, occasions),
-        }),
-      },
-    ];
-  });
-}
-
-function idiomCandidates(): Candidate[] {
-  const meanings = IDIOMS.map((i) => i.meaning);
-  const idioms = IDIOMS.map((i) => i.idiom);
-  return IDIOMS.flatMap((f) => {
-    const source = `idiom:${f.idiom}`;
-    return [
-      {
-        qid: `${source}:fwd`,
-        source,
-        make: () => ({
-          q: `'${f.idiom}'의 뜻은?`,
-          ans: f.meaning,
-          d: pickDistractors(f.meaning, meanings, meanings),
-        }),
-      },
-      {
-        qid: `${source}:rev`,
-        source,
-        make: () => ({
-          q: `'${f.meaning}' — 이 뜻의 한자성어는?`,
-          ans: f.idiom,
-          d: pickDistractors(f.idiom, idioms, idioms),
-        }),
-      },
-    ];
-  });
+    }),
+    ...pairCandidates({
+      prefix: "idiom",
+      items: IDIOMS,
+      key: (i) => i.idiom,
+      left: (i) => i.idiom,
+      right: (i) => i.meaning,
+      askRight: (i) => `'${i.idiom}'의 뜻은?`,
+      askLeft: (i) => `'${i.meaning}' — 이 뜻의 한자성어는?`,
+    }),
+    ...pairCandidates({
+      prefix: "season",
+      items: SEASONAL,
+      key: (s) => s.occasion,
+      left: (s) => s.occasion,
+      right: (s) => s.food,
+      askRight: (s) => `${s.occasion}에 먹는 대표 음식은?`,
+      askLeft: (s) => `${s.food} — 언제 먹는 음식일까요?`,
+    }),
+    ...pairCandidates({
+      prefix: "term",
+      items: SOLAR_TERMS,
+      key: (t) => t.term,
+      left: (t) => t.term,
+      right: (t) => t.meaning,
+      askRight: (t) => `절기 '${t.term}'은 어떤 날일까요?`,
+      askLeft: (t) => `'${t.meaning}' — 이 절기의 이름은?`,
+    }),
+    ...pairCandidates({
+      prefix: "animal",
+      items: ANIMALS,
+      key: (a) => a.animal,
+      left: (a) => a.animal,
+      right: (a) => a.baby,
+      askRight: (a) => `${a.animal}의 새끼를 무엇이라고 부를까요?`,
+      askLeft: (a) => `'${a.baby}' — 어떤 동물의 새끼일까요?`,
+    }),
+    ...pairCandidates({
+      prefix: "body",
+      items: BODY_PARTS,
+      key: (b) => b.part,
+      left: (b) => b.part,
+      right: (b) => b.work,
+      askRight: (b) => `우리 몸에서 '${b.part}'가 하는 일은?`,
+      askLeft: (b) => `'${b.work}' — 우리 몸의 어디일까요?`,
+    }),
+    ...pairCandidates({
+      prefix: "unit",
+      items: OLD_UNITS,
+      key: (u) => u.unit,
+      left: (u) => u.unit,
+      right: (u) => u.size,
+      askRight: (u) => `'${u.unit}'은 얼마쯤일까요?`,
+      askLeft: (u) => `'${u.size}' — 옛 단위로 얼마일까요?`,
+    }),
+  ];
 }
 
 /** 상식 퀴즈 후보 — 지식 파생 + 단발 문항. */
@@ -366,7 +443,7 @@ export function quizCandidates(): Candidate[] {
       d: item.o.filter((_, i) => i !== item.a),
     }),
   }));
-  return [...capitalCandidates(), ...seasonalCandidates(), ...idiomCandidates(), ...statics];
+  return [...factCandidates(), ...statics];
 }
 
 /**
