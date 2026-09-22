@@ -9,6 +9,48 @@
 
 ## 지금 막힌 것
 
+### 도메인 이전 → `www.carely.co.kr`
+
+**알림 키보다 먼저 한다.** 푸시 구독은 출처(origin)에 묶여 있어서 주소가 바뀌면
+전부 무효가 된다. 순서를 거꾸로 하면 구독·PWA 설치를 두 번 한다.
+
+코드는 **바꿀 게 없다.** 확인한 것:
+
+```
+app/manifest.ts      start_url "/home" — 상대 경로
+app/layout.tsx       manifest "/manifest.webmanifest" — 상대 경로
+public/sw.js         self.location.origin 기준. 캐싱 안 함 → 묵은 캐시 없음
+vercel.json          크론 path 가 상대 경로 → 배포를 따라간다
+lib/storage.ts        서명 URL 은 supabase.co → 출처 무관
+```
+
+`carely.app` 은 **웹 주소가 아니다.** 아이디 로그인용 합성 이메일 도메인
+(`<아이디>@carely.app`)이라 건드리면 로그인이 깨진다(`lib/auth/ids.ts`).
+
+로그인이 비밀번호 방식(`signInWithPassword`)이라 Supabase 의 Site URL ·
+Redirect URLs 도 로그인을 막지 않는다. 그래도 맞춰 두는 게 낫다.
+
+**순서**
+
+```
+1. 가비아 등 등록기관에서 carely.co.kr DNS 를 Vercel 로
+     www   CNAME   cname.vercel-dns.com
+     @     A       76.76.21.21        (루트도 쓸 거면)
+2. Vercel → Settings → Domains → www.carely.co.kr 추가
+     Production 기본 도메인으로 지정. carely.co.kr → www 리다이렉트
+3. 인증서 발급 확인 (몇 분). https 로 열리는지 본다
+4. Supabase → Authentication → URL Configuration
+     Site URL 을 https://www.carely.co.kr 로
+5. 그다음에 알림 키 (아래) → PWA 설치 → 알림 켜기
+```
+
+**바뀐 뒤 해야 하는 것**
+
+- **PWA 를 지우고 다시 설치한다.** 홈 화면 아이콘은 옛 출처를 가리킨다.
+  아이콘만 남겨두면 옛 주소로 들어가 알림이 안 온다
+- 구독은 새 출처에서 다시 켠다. 지금 `push_subscriptions` 가 0행이라 지울 것도 없다
+- 외부 크론을 쓰고 있으면 URL 을 바꾼다(아래 "예약 알림")
+
 ### 알림 키 (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
 
 앱에서 **"알림 키가 올바르지 않아요"** 가 뜬다. 값이 잘못 들어가 있다.
@@ -219,7 +261,7 @@ Vercel Hobby 는 크론이 하루 1회다(`vercel.json` 의 `0 23 * * *` = KST �
 
 ```
 cron-job.org (무료, 1분 간격까지)
-  URL      https://carely-care.vercel.app/api/cron/notify
+  URL      https://www.carely.co.kr/api/cron/notify   (도메인 이전 전에는 carely-care.vercel.app)
   Schedule Every 15 minutes
   Header   Authorization: Bearer <CRON_SECRET>
 ```
@@ -349,8 +391,8 @@ RATE_DELTA           0.1
 - **식단 기록** — 매 끼니 입력은 부담이 너무 커서 며칠 하고 그만둔다
 - **AI 대화 상담** — 65세에게 챗봇 UI는 진입 장벽이 높고 잘못된 건강 조언 위험이 있다.
   가족 회상 질문이 이미 "대화" 역할을 하고 그쪽이 진짜 가족이라 낫다
-- **음성 답변** — `family_answers` 에 `audio_path` 만 추가하면 되게 스키마를 잡아뒀다.
-  글로 쓰면 한 줄, 말로 하면 이야기가 나오므로 언젠가는 할 만하다
+- **음성 답변** — 제안했지만 필요 없다고 하셨다(2026-09-22). 스키마는 `family_answers`
+  에 `audio_path` 만 추가하면 되게 잡혀 있으니 생각이 바뀌면 그때 한다
 
 ---
 
