@@ -56,15 +56,23 @@ export async function subscribePush(): Promise<SubscribeResult> {
     // 환경변수를 붙여넣을 때 앞뒤 공백·개선이 섞이는 일이 흔하다. atob 이 그걸로 터진다.
     const vapid = raw.trim().replace(/\s/g, "");
 
+    // 진단 가능한 메시지를 준다. 여기서 막히면 원인이 환경변수 값 하나뿐인데,
+    // "올바르지 않아요" 만으로는 무엇이 틀렸는지 알 수 없다.
+    //   공개키 = base64url 87자 → 디코딩하면 P-256 언압축 65바이트, 'B' 로 시작
+    //   개인키 = 43자. 이걸 NEXT_PUBLIC_VAPID_PUBLIC_KEY 에 넣는 실수가 가장 흔하다.
+    const keyHint = `${vapid.length}자, ${vapid.slice(0, 4)}…`;
+
     let appKey: Uint8Array;
     try {
       appKey = urlBase64ToUint8Array(vapid);
     } catch {
-      return { ok: false, reason: "알림 키가 올바르지 않아요 (관리자 확인 필요)" };
+      return { ok: false, reason: `알림 키를 읽을 수 없어요 (${keyHint})` };
     }
-    // P-256 공개키는 언압축 형식 65바이트다. 길이가 다르면 키를 잘못 넣은 것.
     if (appKey.byteLength !== 65) {
-      return { ok: false, reason: "알림 키가 올바르지 않아요 (관리자 확인 필요)" };
+      return {
+        ok: false,
+        reason: `알림 키가 짧아요. 공개키는 87자인데 지금 ${keyHint} — 개인키를 넣으셨을 수 있어요`,
+      };
     }
 
     let permission: NotificationPermission;
